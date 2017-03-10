@@ -5,17 +5,7 @@ close all;
 
 
 
-%% INITIALIZE CONNECTION
 
-% Create TCP/IP object 't'. Specify server machine and port number.
-% Open the connection with the server
-t = tcpip('localhost', 1234);
-set(t, 'InputBufferSize', 30000);
-set(t, 'OutputBufferSize', 30000);
-pause(0.1);
-fopen(t);
-
-disp('Connection with JADE established');
 
 %% simulation settings
 
@@ -23,6 +13,7 @@ disp(['Loading...']);
 
 %sim
 cyc_repeat = 0; %repeat drive/pedal cycle or stop at the end
+cyc_repeat_times = 30;
 sample_time = 0.01; %[s]
 stop_option = 0; %stop on: 0 SOC, 1 both, 2 Vbatt, 3 none
 %IO
@@ -171,6 +162,30 @@ Jade_handle.SB1 = getSimulinkBlockHandle(...
 Jade_handle.SB2 = getSimulinkBlockHandle(...
     'BugE_v0_40_MAS/Master Controller/DCDC Calculators/(SB) MB//SB Class  DCDC Voltage => Power Droop1/jade_SB2');
 
+MB_on_handle = getSimulinkBlockHandle(...
+'BugE_v0_40_MAS/Master Controller/Secondary Objectives/MB SOC balancing/and');
+% MB2_on_handle = getSimulinkBlockHandle(...
+% 'BugE_v0_40_MAS/Inputs Hardware to Controller/Device detection & identification/ON_MB2');
+SB1_on_handle = getSimulinkBlockHandle(...
+'BugE_v0_40_MAS/Inputs Hardware to Controller/Device detection & identification/ON_SB1');
+SB2_on_handle = getSimulinkBlockHandle(...
+'BugE_v0_40_MAS/Inputs Hardware to Controller/Device detection & identification/ON_SB2');
+LD_on_handle = getSimulinkBlockHandle(...
+'BugE_v0_40_MAS/Inputs Hardware to Controller/Device detection & identification/ON_LD');
+
+MB1_Iout_handle = getSimulinkBlockHandle(...
+    'BugE_v0_40_MAS/Energy Storage (New Grid)/MB1 DCDC/Current limiter/avoid 0 div3');
+MB2_Iout_handle = getSimulinkBlockHandle(...
+    'BugE_v0_40_MAS/Energy Storage (New Grid)/MB2 DCDC/Current limiter/avoid 0 div3');
+MB1_SOC_handle = getSimulinkBlockHandle(...
+    'BugE_v0_40_MAS/Inputs Hardware to Controller/Sensors and readings/Unit Delay');
+MB2_SOC_handle = getSimulinkBlockHandle(...
+    'BugE_v0_40_MAS/Inputs Hardware to Controller/Sensors and readings/Unit Delay1');
+SB1_SOC_handle = getSimulinkBlockHandle(...
+    'BugE_v0_40_MAS/Inputs Hardware to Controller/Sensors and readings/Unit Delay2');
+SB2_SOC_handle = getSimulinkBlockHandle(...
+    'BugE_v0_40_MAS/Inputs Hardware to Controller/Sensors and readings/Unit Delay3');
+
 set_param(Jade_handle.MB1,'Value', '[0.0,0.0,0.0]');
 set_param(Jade_handle.MB2,'Value', '[0.0,0.0,0.0]');
 set_param(Jade_handle.SB1,'Value', '[0.0,0.0,0.0]');
@@ -178,6 +193,18 @@ set_param(Jade_handle.SB2,'Value', '[0.0,0.0,0.0]');
 
 agents = {'MB1','MB2','SB1','SB2'};
 
+%% INITIALIZE CONNECTION
+
+% Create TCP/IP object 't'. Specify server machine and port number.
+% Open the connection with the server
+t = tcpip('localhost', 1234);
+set(t, 'InputBufferSize', 30000);
+set(t, 'OutputBufferSize', 30000);
+pause(0.1);
+fopen(t);
+
+disp('Connection with JADE established');
+%%
 disp('Exchanging data...') 
 
 
@@ -256,6 +283,10 @@ while(exist('t'))
         if(strcmp(action,'run-simulink'))
             disp(['Simulating...']);
             tic;
+            if cyc_repeat ==1
+                stoptime = period*cyc_repeat_times;
+                set_param(sys, 'StopTime', num2str(stoptime));
+            end
             set_param(sys,'SimulationCommand','start');
             tcp_send_function(t,[]);
             while ~strcmp(get_param(sys,'SimulationStatus'),'stopped')              
@@ -291,31 +322,54 @@ while(exist('t'))
                         rto_SB_Imin = get_param(SB_Imin_handle,'RuntimeObject');
                         rto_SB_Imax= get_param(SB_Imax_handle,'RuntimeObject');
                         
+                        rto_MB_on= get_param(MB_on_handle,'RuntimeObject');
+                        rto_SB1_on= get_param(SB1_on_handle,'RuntimeObject');
+                        rto_SB2_on= get_param(SB2_on_handle,'RuntimeObject');
+                        rto_LD_on= get_param(LD_on_handle,'RuntimeObject');
+                        
+                        rto_MB1_Iout= get_param(MB1_Iout_handle,'RuntimeObject');
+                        rto_MB2_Iout= get_param(MB2_Iout_handle,'RuntimeObject');
+                        rto_MB1_SOC= get_param(MB1_SOC_handle,'RuntimeObject');
+                        rto_MB2_SOC= get_param(MB2_SOC_handle,'RuntimeObject');
+                        rto_SB1_SOC= get_param(SB1_SOC_handle,'RuntimeObject');
+                        rto_SB2_SOC= get_param(SB2_SOC_handle,'RuntimeObject');
+                        
                         rto_simtime= get_param(sys,'SimulationTime');
 
-                        read.Vbus = rto_Vbus.OutputPort(1).Data;
-                        read.Imotor = rto_Imotor.OutputPort(1).Data;
-                        read.MB1_Vin = rto_MB1_Vin.OutputPort(1).Data;
-                        read.MB2_Vin = rto_MB2_Vin.OutputPort(1).Data;
-                        read.SB1_Vin = rto_SB1_Vin.OutputPort(1).Data;
-                        read.SB2_Vin = rto_SB2_Vin.OutputPort(1).Data;
-                        read.MB1_slope_adj = rto_MB_slope_adj.OutputPort(1).Data(1);
-                        read.MB2_slope_adj = rto_MB_slope_adj.OutputPort(1).Data(2);
-                        read.MB1_V0_adj = rto_MB_V0_adj.OutputPort(1).Data(1);
-                        read.MB2_V0_adj = rto_MB_V0_adj.OutputPort(1).Data(2);
-                        read.MB1_Imin = rto_MB_Imin.OutputPort(1).Data(1);
-                        read.MB2_Imin = rto_MB_Imin.OutputPort(1).Data(2);
-                        read.MB1_Imax = rto_MB_Imax.OutputPort(1).Data(1);
-                        read.MB2_Imax = rto_MB_Imax.OutputPort(1).Data(2);
-                        read.SB1_slope_adj = rto_SB_slope_adj.OutputPort(1).Data(1);
-                        read.SB2_slope_adj = rto_SB_slope_adj.OutputPort(1).Data(2);
-                        read.SB1_V0_adj = rto_SB_V0_adj.OutputPort(1).Data(1);
-                        read.SB2_V0_adj = rto_SB_V0_adj.OutputPort(1).Data(2);
-                        read.SB1_Imin = rto_SB_Imin.OutputPort(1).Data(1);
-                        read.SB2_Imin = rto_SB_Imin.OutputPort(1).Data(2);
-                        read.SB1_Imax = rto_SB_Imax.OutputPort(1).Data(1);
-                        read.SB2_Imax = rto_SB_Imax.OutputPort(1).Data(2);
-                        read.simtime = rto_simtime;
+                        read.Vbus = rto_Vbus.OutputPort(1).Data;%0
+                        read.Imotor = rto_Imotor.OutputPort(1).Data;%1
+                        read.MB1_Vin = rto_MB1_Vin.OutputPort(1).Data;%2
+                        read.MB2_Vin = rto_MB2_Vin.OutputPort(1).Data;%3
+                        read.SB1_Vin = rto_SB1_Vin.OutputPort(1).Data;%4
+                        read.SB2_Vin = rto_SB2_Vin.OutputPort(1).Data;%5
+                        read.MB1_slope_adj = rto_MB_slope_adj.OutputPort(1).Data(1);%6
+                        read.MB2_slope_adj = rto_MB_slope_adj.OutputPort(1).Data(2);%7
+                        read.MB1_V0_adj = rto_MB_V0_adj.OutputPort(1).Data(1);%8
+                        read.MB2_V0_adj = rto_MB_V0_adj.OutputPort(1).Data(2);%9
+                        read.MB1_Imin = rto_MB_Imin.OutputPort(1).Data(1);%10
+                        read.MB2_Imin = rto_MB_Imin.OutputPort(1).Data(2);%11
+                        read.MB1_Imax = rto_MB_Imax.OutputPort(1).Data(1);%12
+                        read.MB2_Imax = rto_MB_Imax.OutputPort(1).Data(2);%13
+                        read.SB1_slope_adj = rto_SB_slope_adj.OutputPort(1).Data(1);%14
+                        read.SB2_slope_adj = rto_SB_slope_adj.OutputPort(1).Data(2);%15
+                        read.SB1_V0_adj = rto_SB_V0_adj.OutputPort(1).Data(1);%16
+                        read.SB2_V0_adj = rto_SB_V0_adj.OutputPort(1).Data(2);%17
+                        read.SB1_Imin = rto_SB_Imin.OutputPort(1).Data(1);%18
+                        read.SB2_Imin = rto_SB_Imin.OutputPort(1).Data(2);%19
+                        read.SB1_Imax = rto_SB_Imax.OutputPort(1).Data(1);%20
+                        read.SB2_Imax = rto_SB_Imax.OutputPort(1).Data(2);%21
+                        read.MB1_on = rto_MB_on.OutputPort(1).Data(1);%22
+                        read.MB2_on = rto_MB_on.OutputPort(1).Data(2);%23
+                        read.SB1_on = rto_SB1_on.OutputPort(1).Data;%24
+                        read.SB2_on = rto_SB2_on.OutputPort(1).Data;%25
+                        read.LD_on = rto_LD_on.OutputPort(1).Data;%26
+                        read.MB1_Iout = rto_MB1_Iout.OutputPort(1).Data;%27
+                        read.MB2_Iout = rto_MB2_Iout.OutputPort(1).Data;%28
+                        read.MB1_SOC = rto_MB1_SOC.OutputPort(1).Data;%29
+                        read.MB2_SOC = rto_MB2_SOC.OutputPort(1).Data;%30
+                        read.SB1_SOC = rto_SB1_SOC.OutputPort(1).Data;%31
+                        read.SB2_SOC = rto_SB2_SOC.OutputPort(1).Data;%32
+                        read.simtime = rto_simtime;%33
 
                         read_fields_str = strjoin(fieldnames(read),',');
                         read_values = struct2array(read);
@@ -457,3 +511,7 @@ ylabel('Interval (s)');
 interval_avg = mean(time_interval(:,2))
 gap_max = max(update_time(:,2)-update_time(:,1))
 gap_avg = mean(update_time(:,2)-update_time(:,1))
+
+%%
+save('jade_sync_30_2.mat');
+

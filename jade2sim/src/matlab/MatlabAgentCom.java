@@ -74,6 +74,7 @@ public class MatlabAgentCom extends Agent
 		// Send a message to the tester to say its can start sending requests
 		//sendMessage("Tester","","start-now",ACLMessage.INFORM);
 		sendMessage("simulink","","start-now",ACLMessage.INFORM);
+		sendMessage("obj","","start-now",ACLMessage.INFORM);
 		sendMessage("mb1","","start-now",ACLMessage.INFORM);
 		sendMessage("mb2","","start-now",ACLMessage.INFORM);
 		sendMessage("sb1","","start-now",ACLMessage.INFORM);
@@ -234,20 +235,22 @@ public class MatlabAgentCom extends Agent
 					out.flush();
 					if(!inputAnswer.equals("Done"))
 					{
-	//					System.out.println(getLocalName() + ": Read input received from Matlab: " + inputAnswer);
-						sendMessage("mb1",inputAnswer,"get-output",ACLMessage.INFORM);
+	//					
+						sendMessage("obj",inputAnswer,"get-output",ACLMessage.INFORM);
+//						System.out.println(getLocalName() + ": Read input received from Matlab: " + inputAnswer);
+//						sendMessage("mb1",inputAnswer,"get-output",ACLMessage.INFORM);
 						MessageTemplate  msgMB1= MessageTemplate.MatchSender(new AID ("mb1", AID.ISLOCALNAME));
 						ACLMessage outputReplyMB1 = receive(msgMB1);
 						
-						sendMessage("mb2",inputAnswer,"get-output",ACLMessage.INFORM);
+//						sendMessage("mb2",inputAnswer,"get-output",ACLMessage.INFORM);
 						MessageTemplate  msgMB2= MessageTemplate.MatchSender(new AID ("mb2", AID.ISLOCALNAME));
 						ACLMessage outputReplyMB2 = receive(msgMB2);
 						
-						sendMessage("sb1",inputAnswer,"get-output",ACLMessage.INFORM);
+//						sendMessage("sb1",inputAnswer,"get-output",ACLMessage.INFORM);
 						MessageTemplate  msgSB1= MessageTemplate.MatchSender(new AID ("sb1", AID.ISLOCALNAME));
 						ACLMessage outputReplySB1 = receive(msgSB1);
 						
-						sendMessage("sb2",inputAnswer,"get-output",ACLMessage.INFORM);
+//						sendMessage("sb2",inputAnswer,"get-output",ACLMessage.INFORM);
 						MessageTemplate  msgSB2= MessageTemplate.MatchSender(new AID ("sb2", AID.ISLOCALNAME));
 						ACLMessage outputReplySB2 = receive(msgSB2);
 						
@@ -260,6 +263,10 @@ public class MatlabAgentCom extends Agent
 							outputSB1 = outputReplySB1.getContent();
 							outputSB2 = outputReplySB2.getContent();
 							String outputAnswer = callMatlab("send-output-all," + outputMB1 + "," + outputMB2 + "," + outputSB1 + ","  + outputSB2);
+							outputMB1 = "";
+							outputMB2 = "";
+							outputSB1 = "";
+							outputSB2 = "";
 							out.flush();
 							
 							if(outputAnswer.equals("Done"))

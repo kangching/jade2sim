@@ -65,7 +65,7 @@ public class MatlabAgentMB2 extends Agent
 			// Local variables
 			String device = "MB2";
 //			String params;
-			double vBus, iMotor, vIn, slopeAdj, v0Adj, iMin, iMax, pOut, simTime;
+			double vBus, iMotor, vIn, slopeAdj, v0Adj, iMin, iMax, pOut, simTime, soc;
 			double mcImax = 12.0;
 			double slope = 50.0;
 			double v0 = 24.0;
@@ -134,12 +134,13 @@ public class MatlabAgentMB2 extends Agent
 				
 				vBus = parseAnswerDouble(input)[0];
 				iMotor = parseAnswerDouble(input)[1];
-				vIn = parseAnswerDouble(input)[3];
-				slopeAdj = parseAnswerDouble(input)[7];
-				v0Adj = parseAnswerDouble(input)[9];
-				iMin = parseAnswerDouble(input)[11];
-				iMax = parseAnswerDouble(input)[13];
-				simTime = iMax = parseAnswerDouble(input)[22];
+				vIn = parseAnswerDouble(input)[2];
+				slopeAdj = parseAnswerDouble(input)[3];
+				v0Adj = parseAnswerDouble(input)[4];
+				iMin = parseAnswerDouble(input)[5];
+				iMax = parseAnswerDouble(input)[6];
+				soc = parseAnswerDouble(input)[7];
+				simTime = parseAnswerDouble(input)[8];
 				
 	//			System.out.println(getLocalName() + ": " + vBus);
 				

@@ -29,6 +29,8 @@ public class Launcher
 	static String MATLAB_SB1_CLASS = "matlab.MatlabAgentSB1";
 	static String MATLAB_SB2_NAME = "sb2"; 
 	static String MATLAB_SB2_CLASS = "matlab.MatlabAgentSB2";
+	static String MATLAB_OBJ_NAME = "obj"; 
+	static String MATLAB_OBJ_CLASS = "matlab.MatlabAgentObj";
 	 
 	 
 
@@ -69,6 +71,7 @@ public class Launcher
 		addAgent(MATLAB_MB2_NAME, MATLAB_MB2_CLASS, null);
 		addAgent(MATLAB_SB1_NAME, MATLAB_SB1_CLASS, null);
 		addAgent(MATLAB_SB2_NAME, MATLAB_SB2_CLASS, null);
+		addAgent(MATLAB_OBJ_NAME, MATLAB_OBJ_CLASS, null);
 	}
 
 

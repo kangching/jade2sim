@@ -133,6 +133,7 @@ public class MatlabAgentSimulink extends Agent
 				sendMessage("mb2","",END_CONNECTION,ACLMessage.INFORM);
 				sendMessage("sb1","",END_CONNECTION,ACLMessage.INFORM);
 				sendMessage("sb2","",END_CONNECTION,ACLMessage.INFORM);
+				sendMessage("obj","",END_CONNECTION,ACLMessage.INFORM);
 			// Kill agent
 				myAgent.doDelete();
 			}

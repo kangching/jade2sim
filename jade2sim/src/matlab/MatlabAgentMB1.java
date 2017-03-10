@@ -63,7 +63,7 @@ public class MatlabAgentMB1 extends Agent
 			// Local variables
 			String device = "MB1";
 //			String params;
-			double vBus, iMotor, vIn, slopeAdj, v0Adj, iMin, iMax, pOut,simTime;
+			double vBus, iMotor, vIn, slopeAdj, v0Adj, iMin, iMax, pOut, simTime, soc;
 			double mcImax = 12.0;
 			double slope = 50.0;
 			double v0 = 24.0;
@@ -133,11 +133,12 @@ public class MatlabAgentMB1 extends Agent
 				vBus = parseAnswerDouble(input)[0];
 				iMotor = parseAnswerDouble(input)[1];
 				vIn = parseAnswerDouble(input)[2];
-				slopeAdj = parseAnswerDouble(input)[6];
-				v0Adj = parseAnswerDouble(input)[8];
-				iMin = parseAnswerDouble(input)[10];
-				iMax = parseAnswerDouble(input)[12];
-				simTime = iMax = parseAnswerDouble(input)[22];
+				slopeAdj = parseAnswerDouble(input)[3];
+				v0Adj = parseAnswerDouble(input)[4];
+				iMin = parseAnswerDouble(input)[5];
+				iMax = parseAnswerDouble(input)[6];
+				soc = parseAnswerDouble(input)[7];
+				simTime = parseAnswerDouble(input)[8];
 				
 	//			System.out.println(getLocalName() + ": " + vBus);
 				
@@ -203,7 +204,7 @@ public class MatlabAgentMB1 extends Agent
 	private double[] parseAnswerDouble(String answer)
 	{
 		// Split the incoming string
-		String[] splitAnswer = answer.split(",");
+		String[] splitAnswer = answer.split(", ");
 		double[] data = new double[splitAnswer.length];
 		for (int i = 0; i < data.length; i++) {
 		    data[i] = Double.parseDouble(splitAnswer[i]);
