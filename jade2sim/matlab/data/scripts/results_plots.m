@@ -1,7 +1,7 @@
 if show_results_plots==1
 %     tic
     disp(['Plotting results...']);
-    Time = 0:period;
+    Time = 0:stoptime;
 %     %% Battery Current Limiter
 %     figure();
     if use_drive_cycle == 0

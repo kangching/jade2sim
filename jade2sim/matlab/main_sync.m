@@ -12,7 +12,8 @@ close all;
 disp(['Loading...']);
 
 %sim
-cyc_repeat = 0; %repeat drive/pedal cycle or stop at the end
+JADE_on = 1;
+cyc_repeat = 1; %repeat drive/pedal cycle or stop at the end
 cyc_repeat_times = 30;
 sample_time = 0.01; %[s]
 stop_option = 0; %stop on: 0 SOC, 1 both, 2 Vbatt, 3 none
@@ -47,8 +48,8 @@ ess2_soh = 1;
 
 % Secondary Batteries
 run('data/energy_storage/ESS_CE165_360_6S2P.m');
-ess3_init_soc = 1;%0.7;
-ess4_init_soc = 1;%0.7;
+ess3_init_soc = 0.5;%0.7;
+ess4_init_soc = 0.5;%0.7;
 ess3_soh = 1;
 ess4_soh = 1;
 
@@ -124,6 +125,8 @@ fault_seq_step_delay = 0.1; %seconds between the steps of the fault sequences, n
 
 sys = 'BugE_v0_40_MAS';
 load_system(sys);
+
+if JADE_on == 1
 
 Vbus_handle = getSimulinkBlockHandle(...
     'BugE_v0_40_MAS/Energy Storage (New Grid)/Capacitor/Switch1');
@@ -281,7 +284,7 @@ while(exist('t'))
         
 % If this is to run a simulation
         if(strcmp(action,'run-simulink'))
-            disp(['Simulating...']);
+            disp(['Simulating with JADE...']);
             tic;
             if cyc_repeat ==1
                 stoptime = period*cyc_repeat_times;
@@ -465,26 +468,6 @@ while(exist('t'))
     end 
     
 end
-%%
-disp(['Loading...']);
-
-run('data/scripts/results_plots.m');
-run('data/scripts/energy_plots.m'); %% first enable/uncomment blocks
-%run('data/scripts/write_output.m'); %% first enable/uncomment Misc/Data Logging
-
-%% 
-
-cyc_input = nan(size(simout_vel_kph));
-cyc_input(int16(cyc_kph(2:end,1))+1) = cyc_kph(2:end,2);
-cyc_diff = (simout_vel_kph-cyc_input);
-cyc_violation = 0;
-if max(abs(cyc_diff))>=2
-   cyc_violation = 1;
-   disp(['!!!Driving cycle violaiton!!!']);
-end
-
-travel_distance = sum(simout_vel_kph)/3600;
-Eff_Veh = P_Electrical_Storage/travel_distance*100;
 
 %% Read time and update interval
 update_time = output_time;
@@ -512,6 +495,45 @@ interval_avg = mean(time_interval(:,2))
 gap_max = max(update_time(:,2)-update_time(:,1))
 gap_avg = mean(update_time(:,2)-update_time(:,1))
 
+end
+
+if JADE_on == 0
+    tic
+    disp(['Simulating in Simulink...']);
+    if cyc_repeat ==1
+    stoptime = period*cyc_repeat_times;
+    set_param(sys, 'StopTime', num2str(stoptime));
+    else
+        stoptime = period;
+    end
+    % period = period*5;
+    % set_param(sys,'StopTime',num2str(period));
+    sim(sys)%, 'SrcWorkspace' , 'current')
+    toc
+end
 %%
-save('jade_sync_30_2.mat');
+disp(['Loading...']);
+
+run('data/scripts/results_plots.m');
+run('data/scripts/energy_plots.m'); %% first enable/uncomment blocks
+%run('data/scripts/write_output.m'); %% first enable/uncomment Misc/Data Logging
+
+%% 
+
+cyc_input = nan(size(simout_vel_kph));
+cyc_input(int16(cyc_kph(2:end,1))+1) = cyc_kph(2:end,2);
+cyc_diff = (simout_vel_kph-cyc_input);
+cyc_violation = 0;
+if max(abs(cyc_diff))>=2
+   cyc_violation = 1;
+   disp(['!!!Driving cycle violaiton!!!']);
+end
+
+travel_distance = sum(simout_vel_kph)/3600;
+Eff_Veh = P_Electrical_Storage/travel_distance*100;
+
+
+
+%%
+% save('jade_sync_30_2.mat');
 
