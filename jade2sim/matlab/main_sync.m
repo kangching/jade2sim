@@ -12,9 +12,9 @@ close all;
 disp(['Loading...']);
 
 %sim
-JADE_on = 1;
+JADE_on = 0;
 cyc_repeat = 1; %repeat drive/pedal cycle or stop at the end
-cyc_repeat_times = 30;
+cyc_repeat_times = 10;
 sample_time = 0.01; %[s]
 stop_option = 0; %stop on: 0 SOC, 1 both, 2 Vbatt, 3 none
 %IO
@@ -79,7 +79,7 @@ vbus_min = 17; %V
 vbus_max = 25; %V
 vbus_threshold = 20; %V threshold for startup
 vbus_safety_threshold = 2; %V beyond min/max for which system shuts off
-bus_load_Pmax_abs = 500; %W
+bus_load_Pmax_abs = 250; %500%W
 bus_charger_Pmax = 1000; %W
 
 
@@ -535,5 +535,5 @@ Eff_Veh = P_Electrical_Storage/travel_distance*100;
 
 
 %%
-% save('jade_sync_30_2.mat');
+save('multiple_loads.mat');
 
