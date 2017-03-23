@@ -14,7 +14,7 @@ disp(['Loading...']);
 %sim
 JADE_on = 0;
 cyc_repeat = 1; %repeat drive/pedal cycle or stop at the end
-cyc_repeat_times = 10;
+cyc_repeat_times = 3;
 sample_time = 0.01; %[s]
 stop_option = 0; %stop on: 0 SOC, 1 both, 2 Vbatt, 3 none
 %IO
@@ -442,7 +442,7 @@ while(exist('t'))
             toc
             tcp_send_function(t,'Done');
             set_param(sys,'SimulationCommand','stop');
-            close_system(sys,0);
+            %close_system(sys,0);
             
             clear reseive_output;
             clear msg;
@@ -535,5 +535,5 @@ Eff_Veh = P_Electrical_Storage/travel_distance*100;
 
 
 %%
-save('multiple_loads.mat');
+%save('multiple_loads.mat');
 
