@@ -12,9 +12,9 @@ close all;
 disp(['Loading...']);
 
 %sim
-JADE_on = 1;
+JADE_on = 0;
 cyc_repeat = 1; %repeat drive/pedal cycle or stop at the end
-cyc_repeat_times = 30;
+cyc_repeat_times = 3;
 sample_time = 0.01; %[s]
 stop_option = 0; %stop on: 0 SOC, 1 both, 2 Vbatt, 3 none
 %IO
