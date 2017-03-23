@@ -123,7 +123,7 @@ fault_seq_step_delay = 0.1; %seconds between the steps of the fault sequences, n
 
 %% Load simulatin and set handles for simulation data
 
-sys = 'BugE_v0_40_MAS';
+sys = 'BugE_v0_40_MAS_loads';
 load_system(sys);
 
 if JADE_on == 1
@@ -500,7 +500,7 @@ end
 if JADE_on == 0
     tic
     disp(['Simulating in Simulink...']);
-    if cyc_repeat ==1
+    if cyc_repeat == 1
     stoptime = period*cyc_repeat_times;
     set_param(sys, 'StopTime', num2str(stoptime));
     else

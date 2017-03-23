@@ -4,7 +4,7 @@ if show_results_plots==1
     disp(['Plotting results...']);
     Time = 0:stoptime;
     a = 0;
-    b = 2000;
+    b = stoptime;
 %     %% Battery Current Limiter
 %     figure();
     if use_drive_cycle == 0
