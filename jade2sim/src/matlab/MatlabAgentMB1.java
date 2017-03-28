@@ -138,7 +138,7 @@ public class MatlabAgentMB1 extends Agent
 				iMin = parseAnswerDouble(input)[5];
 				iMax = parseAnswerDouble(input)[6];
 	//			soc = parseAnswerDouble(input)[7];
-				simTime = parseAnswerDouble(input)[0];
+				simTime = parseAnswerDouble(input)[8];
 				
 	//			System.out.println(getLocalName() + ": " + vBus);
 				
@@ -156,7 +156,7 @@ public class MatlabAgentMB1 extends Agent
 					{
 						pOut = pOutInitial;
 					}
-				output = device + ",Pmax,Pmin,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(pMin) + "," + Double.toString(pOut) + "," + Double.toString(simTime);
+				output = device + ",Pmax,Pmin,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(pMin) + "," + Double.toString(pOut) + "," + simTime;
 
 //				reply.setContent(output);
 //				myAgent.send(reply);
