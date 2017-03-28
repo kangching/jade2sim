@@ -68,6 +68,11 @@ public class MatlabAgentObj extends Agent
 			double mb2Vin, mb2SlopeAdj, mb2V0Adj, mb2Imin, mb2Imax;
 			double sb1Vin, sb1SlopeAdj, sb1V0Adj, sb1Imin, sb1Imax;
 			double sb2Vin, sb2SlopeAdj, sb2V0Adj, sb2Imin, sb2Imax;
+			double acPreq, autopilotPreq, lightsPreq, usbPreq;
+			double acLevel = 1.0;
+			double autopilotLevel = 1.0;
+			double lightsLevel = 1.0;
+			double usbLevel = 1.0;
 			double IoutTotal, relativeSOC1, relativeSOC2;
 			int balanceType;
 			String input = "";
@@ -130,37 +135,36 @@ public class MatlabAgentObj extends Agent
 //				ACLMessage reply = inputMsg.createReply();
 //				System.out.println(getLocalName() + ": Input: " + input);
 				
-				vBus = parseAnswerDouble(input)[0];
-				iMotor = parseAnswerDouble(input)[1];
-				mb1Vin = parseAnswerDouble(input)[2];
+				vBus = parseAnswerDouble(input)[1];
+				iMotor = parseAnswerDouble(input)[2];
+				mb1Vin = parseAnswerDouble(input)[3];
 				mb1SlopeAdj = 0.0; //parseAnswerDouble(input)[6];
 				mb1V0Adj = 0.0; //parseAnswerDouble(input)[8];
-				mb1Imin = parseAnswerDouble(input)[10];
-				mb1Imax = parseAnswerDouble(input)[12];
+				mb1Imin = parseAnswerDouble(input)[11];
+				mb1Imax = parseAnswerDouble(input)[13];
 				
-				mb2Vin = parseAnswerDouble(input)[3];
+				mb2Vin = parseAnswerDouble(input)[4];
 				mb2SlopeAdj = 0.0; //parseAnswerDouble(input)[7];
 				mb2V0Adj = 0.0; //parseAnswerDouble(input)[9];
-				mb2Imin = parseAnswerDouble(input)[11];
-				mb2Imax = parseAnswerDouble(input)[13];
+				mb2Imin = parseAnswerDouble(input)[12];
+				mb2Imax = parseAnswerDouble(input)[14];
 				
-				sb1Vin = parseAnswerDouble(input)[4];
+				sb1Vin = parseAnswerDouble(input)[5];
 				sb1SlopeAdj = 0.0; //parseAnswerDouble(input)[14];
 				sb1V0Adj = 0.0; //parseAnswerDouble(input)[16];
-				sb1Imin = parseAnswerDouble(input)[18];
-				sb1Imax = parseAnswerDouble(input)[20];
+				sb1Imin = parseAnswerDouble(input)[19];
+				sb1Imax = parseAnswerDouble(input)[21];
 				
-				sb2Vin = parseAnswerDouble(input)[5];
+				sb2Vin = parseAnswerDouble(input)[6];
 				sb2SlopeAdj = 0.0; //parseAnswerDouble(input)[15];
 				sb2V0Adj = 0.0; //parseAnswerDouble(input)[17];
-				sb2Imin = parseAnswerDouble(input)[19];
-				sb2Imax = parseAnswerDouble(input)[21];
+				sb2Imin = parseAnswerDouble(input)[20];
+				sb2Imax = parseAnswerDouble(input)[22];
 
-				mb1 = parseAnswerDouble(input)[22];
-				mb2 = parseAnswerDouble(input)[23];
-				sb1 = parseAnswerDouble(input)[24];
-				sb2 = parseAnswerDouble(input)[25];
-				load = parseAnswerDouble(input)[26];
+				mb1 = parseAnswerDouble(input)[23];
+				mb2 = parseAnswerDouble(input)[24];
+				sb1 = parseAnswerDouble(input)[25];
+				sb2 = parseAnswerDouble(input)[26];
 				mb1Iout = parseAnswerDouble(input)[27];
 				mb2Iout = parseAnswerDouble(input)[28];
 				mb1SOC = parseAnswerDouble(input)[29];
@@ -168,7 +172,12 @@ public class MatlabAgentObj extends Agent
 				sb1SOC = parseAnswerDouble(input)[31];
 				sb2SOC = parseAnswerDouble(input)[32];
 				
-				simTime = parseAnswerDouble(input)[33];
+				acPreq = parseAnswerDouble(input)[33];
+				autopilotPreq = parseAnswerDouble(input)[34];
+				lightsPreq = parseAnswerDouble(input)[35];
+				usbPreq = parseAnswerDouble(input)[36];
+				
+				simTime = parseAnswerDouble(input)[0];
 				
 				// SOC Balance 
 				if(mb1+mb2>=2)
@@ -201,19 +210,28 @@ public class MatlabAgentObj extends Agent
 				sb1SlopeAdj = sb1+1.0;
 				sb2SlopeAdj = sb2+1.0;
 				
-				// Driving performance
+				// Load
+				
+				double[] outputLDac=new double[]{vBus, acPreq, acLevel, simTime};
+				double[] outputLDautopilot=new double[]{vBus, autopilotPreq, autopilotLevel, simTime};
+				double[] outputLDlights=new double[]{vBus, lightsPreq, lightsLevel, simTime};
+				double[] outputLDusb=new double[]{vBus, usbPreq, usbLevel, simTime};
 				
 				double[] outputMB1=new double[]{vBus, iMotor, mb1Vin, mb1SlopeAdj, mb1V0Adj, mb1Imin, mb1Imax, mb1SOC, simTime};
 				double[] outputMB2=new double[]{vBus, iMotor, mb2Vin, mb2SlopeAdj, mb2V0Adj, mb2Imin, mb2Imax, mb2SOC, simTime};
 				double[] outputSB1=new double[]{vBus, iMotor, sb1Vin, sb1SlopeAdj, sb1V0Adj, sb1Imin, sb1Imax, sb1SOC, simTime};
 				double[] outputSB2=new double[]{vBus, iMotor, sb2Vin, sb2SlopeAdj, sb2V0Adj, sb2Imin, sb2Imax, sb2SOC, simTime};
 				
+				
 				sendMessage("mb1",Arrays.toString(outputMB1).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
 				sendMessage("mb2",Arrays.toString(outputMB2).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
 				sendMessage("sb1",Arrays.toString(outputSB1).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
 				sendMessage("sb2",Arrays.toString(outputSB2).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				sendMessage("ac",Arrays.toString(outputLDac).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				sendMessage("autopilot",Arrays.toString(outputLDautopilot).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				sendMessage("lights",Arrays.toString(outputLDlights).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				sendMessage("usb",Arrays.toString(outputLDusb).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
 				
-//				System.out.println(getLocalName() + ": Output to Matlab: " + output);
 			}
 			
 			// End connection

@@ -14,7 +14,7 @@ import jade.lang.acl.MessageTemplate;
  * that adapts and forwards its requests to Matlab.
  * @author kcchu
  */
-public class MatlabAgentMB1 extends Agent
+public class MatlabAgentLoadUSB extends Agent
 {
 
 	private static final long serialVersionUID = -4394243932169660776L;
@@ -40,8 +40,7 @@ public class MatlabAgentMB1 extends Agent
 		System.out.println(getLocalName() + ": Starting communication...");
 		
 		// Run behavior
-		CommWithMatlab commWithMatlab = new CommWithMatlab();
-		addBehaviour(commWithMatlab);
+		addBehaviour(new PowerOutput());
 
 	} // End setup
 
@@ -50,7 +49,7 @@ public class MatlabAgentMB1 extends Agent
 	 * Handles communication between the other agents and Matlab
 	 * @author kcchu
 	 */
-	class CommWithMatlab extends SimpleBehaviour
+	class PowerOutput extends SimpleBehaviour
 	{
 
 		private static final long serialVersionUID = 8966535884137111965L;
@@ -61,13 +60,12 @@ public class MatlabAgentMB1 extends Agent
 		{	
 
 			// Local variables
-			String device = "MB1";
-//			String params;
-			double vBus, iMotor, vIn, slopeAdj, v0Adj, iMin, iMax, pOut, simTime;
-			double mcImax = 12.0;
-			double slope = 50.0;
-			double v0 = 24.0;
-			double pMax, pMin, pOutInitial;
+			String device = "LD_USB";
+			double level, pReq, pMax, pOut, vBus, simTime;
+//			double busPmaxAbs = 250.0;
+//			double vBusMax = 25.0;
+//			double vBusMin = 17.0;
+//			double beta = 0.9;
 //			String answer = "";
 //			String request = "";
 			String input = "";
@@ -131,32 +129,33 @@ public class MatlabAgentMB1 extends Agent
 //				System.out.println(getLocalName() + ": Input: " + input);
 				
 				vBus = parseAnswerDouble(input)[0];
-				iMotor = parseAnswerDouble(input)[1];
-				vIn = parseAnswerDouble(input)[2];
-				slopeAdj = parseAnswerDouble(input)[3];
-				v0Adj = parseAnswerDouble(input)[4];
-				iMin = parseAnswerDouble(input)[5];
-				iMax = parseAnswerDouble(input)[6];
-	//			soc = parseAnswerDouble(input)[7];
-				simTime = parseAnswerDouble(input)[0];
+				pReq = parseAnswerDouble(input)[1];
+				level = parseAnswerDouble(input)[2];
+				simTime = parseAnswerDouble(input)[3];
 				
 	//			System.out.println(getLocalName() + ": " + vBus);
 				
-				pMax = Math.min(iMax-iMotor, mcImax)*Math.min(vIn, vBus);
-				pOutInitial = (-(vBus-(v0Adj+v0)))*(slopeAdj*slope);
-				pMin = Math.max(iMin-iMotor, -mcImax)*Math.min(vIn, vBus);
+//				pMax = Math.min((Math.pow((1-beta),2)/saturation((vBus-vBusMin)/(vBusMax-vBusMin), 1.0, Math.ulp(1.0)) - Math.pow((1-beta),2) - 1)*busPmaxAbs,0);
+				pMax = pReq*level;
 				
-				if(pOutInitial>=pMax)
-					{
-					pOut = pMax;
-					}else if(pOutInitial<=pMin)
-					{
-						pOut = pMin;
-					}else
-					{
-						pOut = pOutInitial;
-					}
-				output = device + ",Pmax,Pmin,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(pMin) + "," + Double.toString(pOut) + "," + Double.toString(simTime);
+//				if(pReq >= -pMax)
+//				{
+//					sendMessage("obj",Double.toString(pReq+pMax),"power_request",ACLMessage.INFORM);
+//					MessageTemplate msg = MessageTemplate.MatchConversationId("power_request");
+//					ACLMessage reply = myAgent.receive(msg);
+//					if (msg != null){
+//						busPmaxAbs = Double.parseDouble(reply.getContent());
+//						pMax = Math.min((Math.pow((1-beta),2)/saturation((vBus-vBusMin)/(vBusMax-vBusMin), 1.0, Math.ulp(1.0)) - Math.pow((1-beta),2) - 1)*busPmaxAbs,0);
+//					}
+//					else{
+//						block();
+//					}
+//				}
+				
+				pOut = pReq*level;
+				
+				output = device + ",Pmax,level,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(level) + "," + Double.toString(pOut) + "," + Double.toString(simTime);
+
 
 //				reply.setContent(output);
 //				myAgent.send(reply);
@@ -210,6 +209,13 @@ public class MatlabAgentMB1 extends Agent
 		    data[i] = Double.parseDouble(splitAnswer[i]);
 		}
 		return data;
+	}
+	
+	private double saturation(double input, double upperLimit, double lowerLimit)
+	{
+		double output;
+		output = Math.min(Math.max(input, lowerLimit), upperLimit);
+		return output;
 	}
 	
 //	private Object[][] parseAnswerString(String answer)

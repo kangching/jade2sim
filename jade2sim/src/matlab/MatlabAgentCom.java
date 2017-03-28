@@ -79,6 +79,10 @@ public class MatlabAgentCom extends Agent
 		sendMessage("mb2","","start-now",ACLMessage.INFORM);
 		sendMessage("sb1","","start-now",ACLMessage.INFORM);
 		sendMessage("sb2","","start-now",ACLMessage.INFORM);
+		sendMessage("ac","","start-now",ACLMessage.INFORM);
+		sendMessage("autopilot","","start-now",ACLMessage.INFORM);
+		sendMessage("lights","","start-now",ACLMessage.INFORM);
+		sendMessage("usb","","start-now",ACLMessage.INFORM);
 
 		// Run behavior
 		CommWithMatlab commWithMatlab = new CommWithMatlab();
@@ -220,10 +224,14 @@ public class MatlabAgentCom extends Agent
 				String outputMB2 = "";
 				String outputSB1 = "";
 				String outputSB2 = "";
+				String outputAC = "";
+				String outputAutopilot = "";
+				String outputLights = "";
+				String outputUSB = "";
 
 
 				// Send the message and retrieve the answer
-				//System.out.println(getLocalName() + ": Message sent to Matlab: " + simRequest);
+				System.out.println(getLocalName() + ": Message sent to Matlab: " + simRequest);
 				String simAnswer = callMatlab(simRequest);
 				out.flush();
 				
@@ -254,19 +262,39 @@ public class MatlabAgentCom extends Agent
 						MessageTemplate  msgSB2= MessageTemplate.MatchSender(new AID ("sb2", AID.ISLOCALNAME));
 						ACLMessage outputReplySB2 = receive(msgSB2);
 						
+						MessageTemplate  msgAC= MessageTemplate.MatchSender(new AID ("ac", AID.ISLOCALNAME));
+						ACLMessage outputReplyAC = receive(msgAC);
+						
+						MessageTemplate  msgAutopilot= MessageTemplate.MatchSender(new AID ("autopilot", AID.ISLOCALNAME));
+						ACLMessage outputReplyAutopilot = receive(msgAutopilot);
+						
+						MessageTemplate  msgLights= MessageTemplate.MatchSender(new AID ("lights", AID.ISLOCALNAME));
+						ACLMessage outputReplyLights = receive(msgLights);
+						
+						MessageTemplate  msgUSB= MessageTemplate.MatchSender(new AID ("usb", AID.ISLOCALNAME));
+						ACLMessage outputReplyUSB = receive(msgUSB);
+						
 						/* Send output together*/
 						
-						if(outputReplyMB1!=null && outputReplyMB1!=null && outputReplySB1!=null && outputReplySB2!=null)
+						if(outputReplyMB1!=null && outputReplyMB1!=null && outputReplySB1!=null && outputReplySB2!=null && outputReplyAC!=null && outputReplyAutopilot!=null && outputReplyLights!=null && outputReplyUSB!=null)
 						{
 							outputMB1 = outputReplyMB1.getContent();
 							outputMB2 = outputReplyMB2.getContent();
 							outputSB1 = outputReplySB1.getContent();
 							outputSB2 = outputReplySB2.getContent();
-							String outputAnswer = callMatlab("send-output-all," + outputMB1 + "," + outputMB2 + "," + outputSB1 + ","  + outputSB2);
+							outputAC = outputReplyAC.getContent();
+							outputAutopilot = outputReplyAutopilot.getContent();
+							outputLights = outputReplyLights.getContent();
+							outputUSB = outputReplyUSB.getContent();
+							String outputAnswer = callMatlab("send-output-all," + outputMB1 + "," + outputMB2 + "," + outputSB1 + ","  + outputSB2 + ","  + outputAC + ","  + outputAutopilot + ","  + outputLights + ","  + outputUSB);
 							outputMB1 = "";
 							outputMB2 = "";
 							outputSB1 = "";
 							outputSB2 = "";
+							outputAC = "";
+							outputAutopilot = "";
+							outputLights = "";
+							outputUSB = "";
 							out.flush();
 							
 							if(outputAnswer.equals("Done"))

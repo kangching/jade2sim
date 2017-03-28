@@ -72,6 +72,11 @@ public class Launcher
 		addAgent(MATLAB_SB1_NAME, MATLAB_SB1_CLASS, null);
 		addAgent(MATLAB_SB2_NAME, MATLAB_SB2_CLASS, null);
 		addAgent(MATLAB_OBJ_NAME, MATLAB_OBJ_CLASS, null);
+
+		addAgent("ac", "matlab.MatlabAgentLoadAC", null);
+		addAgent("autopilot", "matlab.MatlabAgentLoadAutopilot", null);
+		addAgent("lights", "matlab.MatlabAgentLoadLight", null);
+		addAgent("usb", "matlab.MatlabAgentLoadUSB", null);
 	}
 
 

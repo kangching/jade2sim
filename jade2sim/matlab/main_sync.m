@@ -12,7 +12,7 @@ close all;
 disp(['Loading...']);
 
 %sim
-JADE_on = 0;
+JADE_on = 1;
 cyc_repeat = 1; %repeat drive/pedal cycle or stop at the end
 cyc_repeat_times = 3;
 sample_time = 0.01; %[s]
@@ -128,73 +128,96 @@ load_system(sys);
 
 if JADE_on == 1
 
-Vbus_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Energy Storage (New Grid)/Capacitor/Switch1');
-MB_slope_adj_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Master Controller/Secondary Objectives/MB SOC balancing/MB balancing through load distribution/[1,10]');
-MB_V0_adj_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Master Controller/Secondary Objectives/Switch');
-MB1_Vin_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Energy Storage (New Grid)/MB1/Compute current (nolimit)/Voc-I*R ');
-MB2_Vin_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Energy Storage (New Grid)/MB2/Compute current (nolimit)/Voc-I*R ');
-MB_Imin_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Master Controller/System Health/MB current limits/Imin');
-MB_Imax_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Master Controller/System Health/MB current limits/Imax');
-SB_slope_adj_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Master Controller/Secondary Objectives/Source prioritization/Bias');
-SB_V0_adj_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Master Controller/Secondary Objectives/Source prioritization/Gain');
-SB1_Vin_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Energy Storage (New Grid)/SB1/Compute current (nolimit)/Voc-I*R ');
-SB2_Vin_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Energy Storage (New Grid)/SB2/Compute current (nolimit)/Voc-I*R ');
-SB_Imin_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Master Controller/System Health/SB current limits/Imin');
-SB_Imax_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Master Controller/System Health/SB current limits/Imax');
-Imotor_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Energy Storage (New Grid)/I_motor');
-Jade_handle.MB1 = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Master Controller/DCDC Calculators/(MB) MB//SB Class  DCDC Voltage => Power Droop/jade_MB1');
-Jade_handle.MB2 = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Master Controller/DCDC Calculators/(MB) MB//SB Class  DCDC Voltage => Power Droop/jade_MB2');
-Jade_handle.SB1 = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Master Controller/DCDC Calculators/(SB) MB//SB Class  DCDC Voltage => Power Droop1/jade_SB1');
-Jade_handle.SB2 = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Master Controller/DCDC Calculators/(SB) MB//SB Class  DCDC Voltage => Power Droop1/jade_SB2');
+Vbus_handle = getSimulinkBlockHandle([sys,...
+    '/Energy Storage (New Grid)/Capacitor/Switch1']);
+MB_slope_adj_handle = getSimulinkBlockHandle([sys,...
+    '/Master Controller/Secondary Objectives/MB SOC balancing/MB balancing through load distribution/[1,10]']);
+MB_V0_adj_handle = getSimulinkBlockHandle([sys,...
+    '/Master Controller/Secondary Objectives/Switch']);
+MB1_Vin_handle = getSimulinkBlockHandle([sys,...
+    '/Energy Storage (New Grid)/MB1/Compute current (nolimit)/Voc-I*R ']);
+MB2_Vin_handle = getSimulinkBlockHandle([sys,...
+    '/Energy Storage (New Grid)/MB2/Compute current (nolimit)/Voc-I*R ']);
+MB_Imin_handle = getSimulinkBlockHandle([sys,...
+    '/Master Controller/System Health/MB current limits/Imin']);
+MB_Imax_handle = getSimulinkBlockHandle([sys,...
+    '/Master Controller/System Health/MB current limits/Imax']);
+SB_slope_adj_handle = getSimulinkBlockHandle([sys,...
+    '/Master Controller/Secondary Objectives/Source prioritization/Bias']);
+SB_V0_adj_handle = getSimulinkBlockHandle([sys,...
+    '/Master Controller/Secondary Objectives/Source prioritization/Gain']);
+SB1_Vin_handle = getSimulinkBlockHandle([sys,...
+    '/Energy Storage (New Grid)/SB1/Compute current (nolimit)/Voc-I*R ']);
+SB2_Vin_handle = getSimulinkBlockHandle([sys,...
+    '/Energy Storage (New Grid)/SB2/Compute current (nolimit)/Voc-I*R ']);
+SB_Imin_handle = getSimulinkBlockHandle([sys,...
+    '/Master Controller/System Health/SB current limits/Imin']);
+SB_Imax_handle = getSimulinkBlockHandle([sys,...
+    '/Master Controller/System Health/SB current limits/Imax']);
+Imotor_handle = getSimulinkBlockHandle([sys,...
+    '/Energy Storage (New Grid)/I_motor']);
+Jade_handle.MB1 = getSimulinkBlockHandle([sys,...
+    '/Master Controller/DCDC Calculators/(MB) MB//SB Class  DCDC Voltage => Power Droop/jade_MB1']);
+Jade_handle.MB2 = getSimulinkBlockHandle([sys,...
+    '/Master Controller/DCDC Calculators/(MB) MB//SB Class  DCDC Voltage => Power Droop/jade_MB2']);
+Jade_handle.SB1 = getSimulinkBlockHandle([sys,...
+    '/Master Controller/DCDC Calculators/(SB) MB//SB Class  DCDC Voltage => Power Droop1/jade_SB1']);
+Jade_handle.SB2 = getSimulinkBlockHandle([sys,...
+    '/Master Controller/DCDC Calculators/(SB) MB//SB Class  DCDC Voltage => Power Droop1/jade_SB2']);
 
-MB_on_handle = getSimulinkBlockHandle(...
-'BugE_v0_40_MAS/Master Controller/Secondary Objectives/MB SOC balancing/and');
+MB_on_handle = getSimulinkBlockHandle([sys,...
+    '/Master Controller/Secondary Objectives/MB SOC balancing/and']);
 % MB2_on_handle = getSimulinkBlockHandle(...
 % 'BugE_v0_40_MAS/Inputs Hardware to Controller/Device detection & identification/ON_MB2');
-SB1_on_handle = getSimulinkBlockHandle(...
-'BugE_v0_40_MAS/Inputs Hardware to Controller/Device detection & identification/ON_SB1');
-SB2_on_handle = getSimulinkBlockHandle(...
-'BugE_v0_40_MAS/Inputs Hardware to Controller/Device detection & identification/ON_SB2');
-LD_on_handle = getSimulinkBlockHandle(...
-'BugE_v0_40_MAS/Inputs Hardware to Controller/Device detection & identification/ON_LD');
+SB1_on_handle = getSimulinkBlockHandle([sys,...
+    '/Inputs Hardware to Controller/Device detection & identification/ON_SB1']);
+SB2_on_handle = getSimulinkBlockHandle([sys,...
+    '/Inputs Hardware to Controller/Device detection & identification/ON_SB2']);
 
-MB1_Iout_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Energy Storage (New Grid)/MB1 DCDC/Current limiter/avoid 0 div3');
-MB2_Iout_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Energy Storage (New Grid)/MB2 DCDC/Current limiter/avoid 0 div3');
-MB1_SOC_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Inputs Hardware to Controller/Sensors and readings/Unit Delay');
-MB2_SOC_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Inputs Hardware to Controller/Sensors and readings/Unit Delay1');
-SB1_SOC_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Inputs Hardware to Controller/Sensors and readings/Unit Delay2');
-SB2_SOC_handle = getSimulinkBlockHandle(...
-    'BugE_v0_40_MAS/Inputs Hardware to Controller/Sensors and readings/Unit Delay3');
+MB1_Iout_handle = getSimulinkBlockHandle([sys,...
+    '/Energy Storage (New Grid)/MB1 DCDC/Current limiter/avoid 0 div3']);
+MB2_Iout_handle = getSimulinkBlockHandle([sys,...
+    '/Energy Storage (New Grid)/MB2 DCDC/Current limiter/avoid 0 div3']);
+MB1_SOC_handle = getSimulinkBlockHandle([sys,...
+    '/Inputs Hardware to Controller/Sensors and readings/Unit Delay']);
+MB2_SOC_handle = getSimulinkBlockHandle([sys,...
+    '/Inputs Hardware to Controller/Sensors and readings/Unit Delay1']);
+SB1_SOC_handle = getSimulinkBlockHandle([sys,...
+    '/Inputs Hardware to Controller/Sensors and readings/Unit Delay2']);
+SB2_SOC_handle = getSimulinkBlockHandle([sys,...
+    '/Inputs Hardware to Controller/Sensors and readings/Unit Delay3']);
+
+LD_AC_handle = getSimulinkBlockHandle([sys,...
+    '/Inputs Simulation Only/AC load/Switch']);
+LD_Autopilot_handle = getSimulinkBlockHandle([sys,...
+    '/Inputs Simulation Only/Autopilot load/Switch']);
+LD_Lights_handle = getSimulinkBlockHandle([sys,...
+    '/Inputs Simulation Only/Auxiliaries power/Switch']);
+LD_USB_handle = getSimulinkBlockHandle([sys,...
+    '/Inputs Simulation Only/USB power/Switch']);
+
+Jade_handle.LD_AC = getSimulinkBlockHandle([sys,...
+    '/Energy Storage (New Grid)/AC/Jade_LD_AC']);
+Jade_handle.LD_Autopilot = getSimulinkBlockHandle([sys,...
+    '/Energy Storage (New Grid)/AutoPilot/Jade_LD_Autopilot']);
+Jade_handle.LD_Lights = getSimulinkBlockHandle([sys,...
+    '/Auxiliaries (LV Grid)/Auxiliary load (lights)/Jade_LD_Lights']);
+Jade_handle.LD_USB = getSimulinkBlockHandle([sys,...
+    '/Auxiliaries (LV Grid)/Auxiliary load (USB ports)/Jade_LD_USB']);
+
 
 set_param(Jade_handle.MB1,'Value', '[0.0,0.0,0.0]');
 set_param(Jade_handle.MB2,'Value', '[0.0,0.0,0.0]');
 set_param(Jade_handle.SB1,'Value', '[0.0,0.0,0.0]');
 set_param(Jade_handle.SB2,'Value', '[0.0,0.0,0.0]');
 
-agents = {'MB1','MB2','SB1','SB2'};
+set_param(Jade_handle.LD_AC,'Value', '[0.0,0.0,0.0]');
+set_param(Jade_handle.LD_Autopilot,'Value', '[0.0,0.0,0.0]');
+set_param(Jade_handle.LD_Lights,'Value', '[0.0,0.0,0.0]');
+set_param(Jade_handle.LD_USB,'Value', '[0.0,0.0,0.0]');
+
+
+agents = {'MB1','MB2','SB1','SB2','LD_AC','LD_Autopilot','LD_Lights','LD_USB'};
 
 %% INITIALIZE CONNECTION
 
@@ -328,7 +351,6 @@ while(exist('t'))
                         rto_MB_on= get_param(MB_on_handle,'RuntimeObject');
                         rto_SB1_on= get_param(SB1_on_handle,'RuntimeObject');
                         rto_SB2_on= get_param(SB2_on_handle,'RuntimeObject');
-                        rto_LD_on= get_param(LD_on_handle,'RuntimeObject');
                         
                         rto_MB1_Iout= get_param(MB1_Iout_handle,'RuntimeObject');
                         rto_MB2_Iout= get_param(MB2_Iout_handle,'RuntimeObject');
@@ -337,43 +359,53 @@ while(exist('t'))
                         rto_SB1_SOC= get_param(SB1_SOC_handle,'RuntimeObject');
                         rto_SB2_SOC= get_param(SB2_SOC_handle,'RuntimeObject');
                         
+                        rto_LD_AC= get_param(LD_AC_handle,'RuntimeObject');
+                        rto_LD_Autopilot= get_param(LD_Autopilot_handle,'RuntimeObject');
+                        rto_LD_Lights= get_param(LD_Lights_handle,'RuntimeObject');
+                        rto_LD_USB= get_param(LD_USB_handle,'RuntimeObject');
+                        
                         rto_simtime= get_param(sys,'SimulationTime');
-
-                        read.Vbus = rto_Vbus.OutputPort(1).Data;%0
-                        read.Imotor = rto_Imotor.OutputPort(1).Data;%1
-                        read.MB1_Vin = rto_MB1_Vin.OutputPort(1).Data;%2
-                        read.MB2_Vin = rto_MB2_Vin.OutputPort(1).Data;%3
-                        read.SB1_Vin = rto_SB1_Vin.OutputPort(1).Data;%4
-                        read.SB2_Vin = rto_SB2_Vin.OutputPort(1).Data;%5
-                        read.MB1_slope_adj = rto_MB_slope_adj.OutputPort(1).Data(1);%6
-                        read.MB2_slope_adj = rto_MB_slope_adj.OutputPort(1).Data(2);%7
-                        read.MB1_V0_adj = rto_MB_V0_adj.OutputPort(1).Data(1);%8
-                        read.MB2_V0_adj = rto_MB_V0_adj.OutputPort(1).Data(2);%9
-                        read.MB1_Imin = rto_MB_Imin.OutputPort(1).Data(1);%10
-                        read.MB2_Imin = rto_MB_Imin.OutputPort(1).Data(2);%11
-                        read.MB1_Imax = rto_MB_Imax.OutputPort(1).Data(1);%12
-                        read.MB2_Imax = rto_MB_Imax.OutputPort(1).Data(2);%13
-                        read.SB1_slope_adj = rto_SB_slope_adj.OutputPort(1).Data(1);%14
-                        read.SB2_slope_adj = rto_SB_slope_adj.OutputPort(1).Data(2);%15
-                        read.SB1_V0_adj = rto_SB_V0_adj.OutputPort(1).Data(1);%16
-                        read.SB2_V0_adj = rto_SB_V0_adj.OutputPort(1).Data(2);%17
-                        read.SB1_Imin = rto_SB_Imin.OutputPort(1).Data(1);%18
-                        read.SB2_Imin = rto_SB_Imin.OutputPort(1).Data(2);%19
-                        read.SB1_Imax = rto_SB_Imax.OutputPort(1).Data(1);%20
-                        read.SB2_Imax = rto_SB_Imax.OutputPort(1).Data(2);%21
-                        read.MB1_on = rto_MB_on.OutputPort(1).Data(1);%22
-                        read.MB2_on = rto_MB_on.OutputPort(1).Data(2);%23
-                        read.SB1_on = rto_SB1_on.OutputPort(1).Data;%24
-                        read.SB2_on = rto_SB2_on.OutputPort(1).Data;%25
-                        read.LD_on = rto_LD_on.OutputPort(1).Data;%26
+                        
+                        
+                        read.simtime = rto_simtime;%0
+                        read.Vbus = rto_Vbus.OutputPort(1).Data;%1
+                        read.Imotor = rto_Imotor.OutputPort(1).Data;%2
+                        read.MB1_Vin = rto_MB1_Vin.OutputPort(1).Data;%3
+                        read.MB2_Vin = rto_MB2_Vin.OutputPort(1).Data;%4
+                        read.SB1_Vin = rto_SB1_Vin.OutputPort(1).Data;%5
+                        read.SB2_Vin = rto_SB2_Vin.OutputPort(1).Data;%6
+                        read.MB1_slope_adj = rto_MB_slope_adj.OutputPort(1).Data(1);%7
+                        read.MB2_slope_adj = rto_MB_slope_adj.OutputPort(1).Data(2);%8
+                        read.MB1_V0_adj = rto_MB_V0_adj.OutputPort(1).Data(1);%9
+                        read.MB2_V0_adj = rto_MB_V0_adj.OutputPort(1).Data(2);%10
+                        read.MB1_Imin = rto_MB_Imin.OutputPort(1).Data(1);%11
+                        read.MB2_Imin = rto_MB_Imin.OutputPort(1).Data(2);%12
+                        read.MB1_Imax = rto_MB_Imax.OutputPort(1).Data(1);%13
+                        read.MB2_Imax = rto_MB_Imax.OutputPort(1).Data(2);%14
+                        read.SB1_slope_adj = rto_SB_slope_adj.OutputPort(1).Data(1);%15
+                        read.SB2_slope_adj = rto_SB_slope_adj.OutputPort(1).Data(2);%16
+                        read.SB1_V0_adj = rto_SB_V0_adj.OutputPort(1).Data(1);%17
+                        read.SB2_V0_adj = rto_SB_V0_adj.OutputPort(1).Data(2);%18
+                        read.SB1_Imin = rto_SB_Imin.OutputPort(1).Data(1);%19
+                        read.SB2_Imin = rto_SB_Imin.OutputPort(1).Data(2);%20
+                        read.SB1_Imax = rto_SB_Imax.OutputPort(1).Data(1);%21
+                        read.SB2_Imax = rto_SB_Imax.OutputPort(1).Data(2);%22
+                        read.MB1_on = rto_MB_on.OutputPort(1).Data(1);%23
+                        read.MB2_on = rto_MB_on.OutputPort(1).Data(2);%24
+                        read.SB1_on = rto_SB1_on.OutputPort(1).Data;%25
+                        read.SB2_on = rto_SB2_on.OutputPort(1).Data;%26
                         read.MB1_Iout = rto_MB1_Iout.OutputPort(1).Data;%27
                         read.MB2_Iout = rto_MB2_Iout.OutputPort(1).Data;%28
                         read.MB1_SOC = rto_MB1_SOC.OutputPort(1).Data;%29
                         read.MB2_SOC = rto_MB2_SOC.OutputPort(1).Data;%30
                         read.SB1_SOC = rto_SB1_SOC.OutputPort(1).Data;%31
                         read.SB2_SOC = rto_SB2_SOC.OutputPort(1).Data;%32
-                        read.simtime = rto_simtime;%33
-
+                        
+                        read.LD_AC = rto_LD_AC.OutputPort(1).Data;%33
+                        read.LD_Autopilot = rto_LD_Autopilot.OutputPort(1).Data;%34
+                        read.LD_Lights = rto_LD_Lights.OutputPort(1).Data;%35
+                        read.LD_USB = rto_LD_USB.OutputPort(1).Data;%36
+                        
                         read_fields_str = strjoin(fieldnames(read),',');
                         read_values = struct2array(read);
                         read_values_str = sprintf(',%.5f',read_values);
@@ -535,5 +567,5 @@ Eff_Veh = P_Electrical_Storage/travel_distance*100;
 
 
 %%
-%save('multiple_loads.mat');
+%save('03242017_c10_ac350_usbx.mat');
 
