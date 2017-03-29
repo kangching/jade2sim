@@ -187,5 +187,22 @@ area(Time,[simout_P_LD_standby, simout_P_LD_USB, simout_P_LD_auxiliary, simout_P
 %     legend('Velocity command','Performance','Location','NorthWest');
 
 %      toc
+
+%%
+figure(); 
+subplot(2,2,1)
+    plot(Time,simout_Level_autopilot,'LineWidth',1)
+    title('Autopilot');
+    subplot(2,2,2)
+    plot(Time,simout_Level_ac,'LineWidth',1)
+    title('A/C');
+    subplot(2,2,3)
+    plot(Time,simout_Level_lights,'LineWidth',1)
+    title('Lights');
+    subplot(2,2,4)
+    plot(Time,simout_Level_usb,'LineWidth',1)
+    title('USB');
+
+
 end;
     

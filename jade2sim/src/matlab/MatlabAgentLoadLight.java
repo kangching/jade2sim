@@ -211,12 +211,12 @@ public class MatlabAgentLoadLight extends Agent
 		return data;
 	}
 	
-	private double saturation(double input, double upperLimit, double lowerLimit)
-	{
-		double output;
-		output = Math.min(Math.max(input, lowerLimit), upperLimit);
-		return output;
-	}
+//	private double saturation(double input, double upperLimit, double lowerLimit)
+//	{
+//		double output;
+//		output = Math.min(Math.max(input, lowerLimit), upperLimit);
+//		return output;
+//	}
 	
 //	private Object[][] parseAnswerString(String answer)
 //	{

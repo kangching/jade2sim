@@ -73,8 +73,17 @@ public class MatlabAgentObj extends Agent
 			double autopilotLevel = 1.0;
 			double lightsLevel = 1.0;
 			double usbLevel = 1.0;
+			double pMB1 = 0.0;
+			double pMB2 = 0.0;
+			double pSB1 = 0.0;
+			double pSB2 = 0.0;
+			double powerBattAll = 0.0;
 			double IoutTotal, relativeSOC1, relativeSOC2;
 			int balanceType;
+			int limitMB1 = 0;
+			int limitMB2 = 0;
+			int limitSB1 = 0;
+			int limitSB2 = 0;
 			String input = "";
 			String output = "";
 					
@@ -212,21 +221,97 @@ public class MatlabAgentObj extends Agent
 				
 				// Load
 				
-				double[] outputLDac=new double[]{vBus, acPreq, acLevel, simTime};
-				double[] outputLDautopilot=new double[]{vBus, autopilotPreq, autopilotLevel, simTime};
-				double[] outputLDlights=new double[]{vBus, lightsPreq, lightsLevel, simTime};
-				double[] outputLDusb=new double[]{vBus, usbPreq, usbLevel, simTime};
-				
 				double[] outputMB1=new double[]{vBus, iMotor, mb1Vin, mb1SlopeAdj, mb1V0Adj, mb1Imin, mb1Imax, mb1SOC, simTime};
 				double[] outputMB2=new double[]{vBus, iMotor, mb2Vin, mb2SlopeAdj, mb2V0Adj, mb2Imin, mb2Imax, mb2SOC, simTime};
 				double[] outputSB1=new double[]{vBus, iMotor, sb1Vin, sb1SlopeAdj, sb1V0Adj, sb1Imin, sb1Imax, sb1SOC, simTime};
 				double[] outputSB2=new double[]{vBus, iMotor, sb2Vin, sb2SlopeAdj, sb2V0Adj, sb2Imin, sb2Imax, sb2SOC, simTime};
 				
-				
 				sendMessage("mb1",Arrays.toString(outputMB1).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+						
+				MessageTemplate  msgMB1= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("mb1", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("limit"));
+				ACLMessage replyMB1 = receive(msgMB1);
+				if(replyMB1!=null){
+					if(mb1 > 0){
+						limitMB1 = 1;
+						pMB1 = Double.parseDouble(replyMB1.getContent());
+					}else{
+						limitMB1 = 0;
+					}
+				}
+
+				
 				sendMessage("mb2",Arrays.toString(outputMB2).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				
+				MessageTemplate  msgMB2= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("mb2", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("limit"));
+				ACLMessage replyMB2 = receive(msgMB2);
+				if(replyMB2!=null){
+					if(mb2 > 0){
+						limitMB2 = 1;
+						pMB2 = Double.parseDouble(replyMB2.getContent());
+					}else{
+						limitMB2 = 0;
+					}
+				}
+
+				
 				sendMessage("sb1",Arrays.toString(outputSB1).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				
+				MessageTemplate  msgSB1= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("sb1", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("limit"));
+				ACLMessage replySB1 = receive(msgSB1);
+				if(replySB1!=null){
+					if(sb1 > 0){
+						limitSB1 = 1;
+						pSB1 = Double.parseDouble(replySB1.getContent());
+					}else{
+						limitSB1 = 0;
+					}
+				}
+
 				sendMessage("sb2",Arrays.toString(outputSB2).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				
+				MessageTemplate  msgSB2= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("sb2", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("limit"));
+				ACLMessage replySB2 = receive(msgSB2);
+				if(replySB2!=null){
+					if(sb2 > 0){
+						limitSB2 = 1;
+						pSB2 = Double.parseDouble(replySB2.getContent());
+					}else{
+						limitSB2 = 0;
+					}
+				}
+
+				
+				powerBattAll = pMB1+pMB2+pSB1+pSB2;
+				double powerReqAll = acPreq+lightsPreq+usbPreq;
+				double powerRatio = (powerBattAll-autopilotPreq)/powerReqAll;
+				double loadLevel = usbLevel+acLevel+lightsLevel;
+				
+				if(limitMB1+limitMB2 >= 1){
+					if(powerRatio <=0){
+						usbLevel = 0.0;
+						acLevel = 0.0;
+						lightsLevel = 0.5;
+					}
+					else{
+						while(powerRatio <1 && loadLevel>0.5)
+						{
+							usbLevel = Math.max(usbLevel-0.5,0);
+							acLevel = Math.max(acLevel-0.25,0);
+							lightsLevel = Math.max(lightsLevel-0.25,0.5);
+							powerReqAll = acPreq*acLevel+lightsPreq*lightsLevel+usbPreq*usbLevel;
+							powerRatio = (powerBattAll-autopilotPreq)/powerReqAll;
+							loadLevel = usbLevel+acLevel+lightsLevel;
+							
+						}
+					}
+				}
+					
+				
+				double[] outputLDac=new double[]{vBus, acPreq, acLevel, simTime};
+				double[] outputLDautopilot=new double[]{vBus, autopilotPreq, autopilotLevel, simTime};
+				double[] outputLDlights=new double[]{vBus, lightsPreq, lightsLevel, simTime};
+				double[] outputLDusb=new double[]{vBus, usbPreq, usbLevel, simTime};
+				
 				sendMessage("ac",Arrays.toString(outputLDac).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
 				sendMessage("autopilot",Arrays.toString(outputLDautopilot).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
 				sendMessage("lights",Arrays.toString(outputLDlights).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
@@ -339,5 +424,6 @@ public class MatlabAgentObj extends Agent
 		message.setConversationId(conversation);
 		this.send(message);
 	}
+	
 
 }

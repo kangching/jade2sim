@@ -14,7 +14,7 @@ disp(['Loading...']);
 %sim
 JADE_on = 1;
 cyc_repeat = 1; %repeat drive/pedal cycle or stop at the end
-cyc_repeat_times = 3;
+cyc_repeat_times = 5;
 sample_time = 0.01; %[s]
 stop_option = 0; %stop on: 0 SOC, 1 both, 2 Vbatt, 3 none
 %IO
@@ -474,7 +474,7 @@ while(exist('t'))
             toc
             tcp_send_function(t,'Done');
             set_param(sys,'SimulationCommand','stop');
-            %close_system(sys,0);
+            close_system(sys,0);
             
             clear reseive_output;
             clear msg;
@@ -565,7 +565,36 @@ travel_distance = sum(simout_vel_kph)/3600;
 Eff_Veh = P_Electrical_Storage/travel_distance*100;
 
 
+%% Read time and update interval
+update_time = output_time;
+for i = 1:size(update_time,1)-1
+    time_interval(i,:) = [update_time(i,1),...
+        update_time(i+1,1)-update_time(i,1)];
+end
+
+figure();
+subplot(2,1,1)
+plot(update_time(:,1),update_time(:,2)-update_time(:,1));
+title('Update Delays');
+xlabel('Time (s)');
+ylabel('Delay (s)');
+
+subplot(2,1,2)
+plot(time_interval(:,1),time_interval(:,2));
+title('Read Interval');
+xlabel('Time (s)');
+ylabel('Interval (s)');
+
+
+
+interval_avg = mean(time_interval(:,2));
+gap_max = max(update_time(:,2)-update_time(:,1));
+gap_avg = mean(update_time(:,2)-update_time(:,1));
 
 %%
-%save('03242017_c10_ac350_usbx.mat');
+
+
+
+%%
+%%save('03282017_c5_ac350_2usb1300_JADE_level.mat');
 
