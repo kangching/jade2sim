@@ -1,5 +1,7 @@
 package matlab;
 
+import java.util.Arrays;
+
 // import java.io.IOException;
 
 import jade.core.AID;
@@ -61,7 +63,13 @@ public class MatlabAgentLoadUSB extends Agent
 
 			// Local variables
 			String device = "LD_USB";
-			double level, pReq, pMax, pOut, vBus, simTime;
+			double pReq, pMax, pOut, vBus, simTime, price, performance;
+			double costCoe = 5.0;
+			double perfCoe = 3.0;
+			int levelMin = 0;
+			int level = levelMin;
+			double perfImprove = 0.0;
+			double powerImprove = 0.0;
 //			double busPmaxAbs = 250.0;
 //			double vBusMax = 25.0;
 //			double vBusMin = 17.0;
@@ -130,7 +138,7 @@ public class MatlabAgentLoadUSB extends Agent
 				
 				vBus = parseAnswerDouble(input)[0];
 				pReq = parseAnswerDouble(input)[1];
-				level = parseAnswerDouble(input)[2];
+				price = parseAnswerDouble(input)[2];
 				simTime = parseAnswerDouble(input)[3];
 				
 	//			System.out.println(getLocalName() + ": " + vBus);
@@ -152,15 +160,43 @@ public class MatlabAgentLoadUSB extends Agent
 //					}
 //				}
 				
-				pOut = pReq*level;
+				if(price<1.0){
+					for(int i = 1; i<(5-levelMin); i++){
+						double cost = (1/costCoe)*Math.exp(-(5-i)*0.25)/((5-i)*0.25);
+								if(cost>=price){
+									level = 5-i;
+									break;
+								}
+					}
+				}
 				
-				output = device + ",Pmax,level,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(level) + "," + Double.toString(pOut) + "," + Double.toString(simTime);
+				pOut = pReq*level*0.25;
+				
+				performance = 1-Math.pow((1-pOut/pReq)/(1-levelMin*0.25),perfCoe);
+				
+//				if(performance<1){
+//					int levelImprove = level+1;
+//					perfImprove = 1-Math.pow((1-levelImprove)/(1-levelMin*0.25),perfCoe)-performance;
+//					powerImprove = saturation(pReq*levelImprove*0.25, -pMax, 0.0)-pOut;
+//				
+//					double[] outputImprove=new double[]{pOut, level, perfImprove, powerImprove};
+//					sendMessage("obj",Arrays.toString(outputImprove).replace("[", "").replace("]", ""),"improve",ACLMessage.INFORM);
+//					
+//					MessageTemplate  reply= MessageTemplate.MatchConversationId("improve");
+//					ACLMessage replyImprove = receive(reply);
+//					if(replyImprove!=null){
+//							level = level+Integer.parseInt(replyImprove.getContent());
+//							pOut = saturation(pReq*level*0.25, -pMax, 0.0);
+//							output = device + ",Pmax,level,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(level) + "," + Double.toString(pOut) + "," + Double.toString(simTime);
+//							sendMessage(matlabAgent,output,"send-output",ACLMessage.INFORM);
+//							
+//					}
+//				}else{
+					output = device + ",Pmax,level,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(level) + "," + Double.toString(pOut) + "," + Double.toString(simTime);
 
-
-//				reply.setContent(output);
-//				myAgent.send(reply);
-				sendMessage(matlabAgent,output,"send-output",ACLMessage.INFORM);
-//				System.out.println(getLocalName() + ": Output to Matlab: " + output);
+					sendMessage(matlabAgent,output,"send-output",ACLMessage.INFORM);
+					
+//				}
 			}
 			
 			// End connection

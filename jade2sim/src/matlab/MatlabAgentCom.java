@@ -228,6 +228,7 @@ public class MatlabAgentCom extends Agent
 				String outputAutopilot = "";
 				String outputLights = "";
 				String outputUSB = "";
+				String outputObj = "";
 
 
 				// Send the message and retrieve the answer
@@ -274,9 +275,11 @@ public class MatlabAgentCom extends Agent
 						MessageTemplate  msgUSB= MessageTemplate.MatchSender(new AID ("usb", AID.ISLOCALNAME));
 						ACLMessage outputReplyUSB = receive(msgUSB);
 						
+						MessageTemplate  msgObj= MessageTemplate.MatchSender(new AID ("obj", AID.ISLOCALNAME));
+						ACLMessage outputReplyObj = receive(msgObj);
 						/* Send output together*/
 						
-						if(outputReplyMB1!=null && outputReplyMB1!=null && outputReplySB1!=null && outputReplySB2!=null && outputReplyAC!=null && outputReplyAutopilot!=null && outputReplyLights!=null && outputReplyUSB!=null)
+						if(outputReplyMB1!=null && outputReplyMB2!=null && outputReplySB1!=null && outputReplySB2!=null && outputReplyAC!=null && outputReplyAutopilot!=null && outputReplyLights!=null && outputReplyUSB!=null && outputReplyObj!=null)
 						{
 							outputMB1 = outputReplyMB1.getContent();
 							outputMB2 = outputReplyMB2.getContent();
@@ -286,7 +289,8 @@ public class MatlabAgentCom extends Agent
 							outputAutopilot = outputReplyAutopilot.getContent();
 							outputLights = outputReplyLights.getContent();
 							outputUSB = outputReplyUSB.getContent();
-							String outputAnswer = callMatlab("send-output-all," + outputMB1 + "," + outputMB2 + "," + outputSB1 + ","  + outputSB2 + ","  + outputAC + ","  + outputAutopilot + ","  + outputLights + ","  + outputUSB);
+							outputObj = outputReplyObj.getContent();
+							String outputAnswer = callMatlab("send-output-all," + outputMB1 + "," + outputMB2 + "," + outputSB1 + ","  + outputSB2 + ","  + outputAC + ","  + outputAutopilot + ","  + outputLights + ","  + outputUSB + ","  + outputObj);
 							outputMB1 = "";
 							outputMB2 = "";
 							outputSB1 = "";
@@ -295,11 +299,12 @@ public class MatlabAgentCom extends Agent
 							outputAutopilot = "";
 							outputLights = "";
 							outputUSB = "";
+							outputObj = "";
 							out.flush();
 							
 							if(outputAnswer.equals("Done"))
 								sendMessage("simulink","",END_CONNECTION,ACLMessage.INFORM);
-	//							System.err.println(getLocalName() + ": send-output-all failed: '" + outputAnswer + "'");
+//								System.err.println(getLocalName() + ": send-output-all failed: '" + outputAnswer + "'");
 						}
 					}else{
 						sendMessage("simulink","",END_CONNECTION,ACLMessage.INFORM);

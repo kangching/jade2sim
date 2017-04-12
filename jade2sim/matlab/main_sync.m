@@ -71,6 +71,7 @@ params.MB2_DCDC_V0 = 24;%24; %intercept
 params.SB_DCDC_slope = params.MB_DCDC_slope;
 params.SB_DCDC_V0 = params.MB_DCDC_V0;
 params.MC_Imax = MC_Imax;
+
 %   DCM DCDC (AB DCDC) for auxiliaries / LV grid / 12V bus
 run('data/dcdc/dcm.m'); %2 in parallel
 
@@ -204,6 +205,8 @@ Jade_handle.LD_Lights = getSimulinkBlockHandle([sys,...
     '/Auxiliaries (LV Grid)/Auxiliary load (lights)/Jade_LD_Lights']);
 Jade_handle.LD_USB = getSimulinkBlockHandle([sys,...
     '/Auxiliaries (LV Grid)/Auxiliary load (USB ports)/Jade_LD_USB']);
+Jade_handle.Obj = getSimulinkBlockHandle([sys,...
+    '/Outputs Simulation only/Jade_Obj']);
 
 
 set_param(Jade_handle.MB1,'Value', '[0.0,0.0,0.0]');
@@ -215,9 +218,10 @@ set_param(Jade_handle.LD_AC,'Value', '[0.0,0.0,0.0]');
 set_param(Jade_handle.LD_Autopilot,'Value', '[0.0,0.0,0.0]');
 set_param(Jade_handle.LD_Lights,'Value', '[0.0,0.0,0.0]');
 set_param(Jade_handle.LD_USB,'Value', '[0.0,0.0,0.0]');
+set_param(Jade_handle.Obj,'Value', '[0.0,0.0,0.0]');
 
 
-agents = {'MB1','MB2','SB1','SB2','LD_AC','LD_Autopilot','LD_Lights','LD_USB'};
+agents = {'MB1','MB2','SB1','SB2','LD_AC','LD_Autopilot','LD_Lights','LD_USB','Obj'};
 
 %% INITIALIZE CONNECTION
 
@@ -592,9 +596,18 @@ gap_max = max(update_time(:,2)-update_time(:,1));
 gap_avg = mean(update_time(:,2)-update_time(:,1));
 
 %%
+busVlower = 19;
+busVupper = 25;
 
+bus_range_int = find(simout_Vcap>=busVlower,1);
+bus_range = (simout_Vcap>=busVlower & simout_Vcap<=busVupper);
+
+for i = bus_range_int:length(bus_range)
+    bus_range_index(i,1) = sum(bus_range(bus_range_int:i,1))/(i-bus_range_int+1);
+    bus_std(i,1) = std(simout_Vcap(bus_range_int:i,1));
+end
 
 
 %%
-%%save('03282017_c5_ac350_2usb1300_JADE_level.mat');
-
+%save('04122017_c5_ac350_2usb1300_JADE.mat');
+save('04122017_c5_ac350_2usb1300_sim.mat');

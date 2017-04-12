@@ -50,6 +50,8 @@ if use_drive_cycle == 1
     xlabel('Time (s)')
     axis([a b 0.4 1]);
     grid on
+
+
 end;
       
     subplot(2,2,4);
@@ -65,6 +67,48 @@ end;
     ylabel('Power (W)')
     axis([a b 0 3000]);
     grid on 
+%%
+figure();
+    subplot(3,2,1);
+    plot(Time,simout_Vcap,'LineWidth',2)
+    title('Bus Voltage')
+    ylabel('Voltage (V)')
+    axis([a b 0 25]);
+    xlabel('Time (s)')
+    grid on
+
+    subplot(3,2,3);
+    plot(Time,bus_range_index,'LineWidth',2)
+    title(['Bus Voltage = [',num2str(busVlower),',',num2str(busVupper),']']);
+    
+    ylabel('% of Time')
+    axis([a b 0.5 1]);
+    xlabel('Time (s)')
+    grid on
+    
+    subplot(3,2,5);
+    plot(Time,bus_std,'LineWidth',2)
+    title('Bus Voltage Std');
+    ylabel('% of Time')
+    axis([a b 0 1.5]);
+    xlabel('Time (s)')
+    grid on
+
+    subplot(3,2,2);
+    plot(Time,simout_MB_SlopAdj.*50,'LineWidth',2)
+    title('MB DCDC Slope')
+    ylabel('Voltage (V)')
+    axis([a b 50 60]);
+    xlabel('Time (s)')
+    grid on
+
+    subplot(3,2,4);
+    plot(Time,simout_price,'LineWidth',2)
+    title('Price');
+    axis([a b 0 1]);
+    grid on;
+    xlabel('Time (s)')
+%%
 
 figure();
 subplot(2,1,1);
@@ -149,10 +193,11 @@ subplot(2,2,2);
     %%
 subplot(2,2,1);
 
-    plot(Time,simout_Vcap,'LineWidth',2)
-    title('Bus Voltage')
-    ylabel('Voltage (V)')
-    axis([a b 0 25]);
+    plot(Time,simout_SOC_MB1,'LineWidth',2)
+    title('MB1 SOC')
+    ylabel('SOC (%)')
+    axis([a b 0.8 1]);
+    xlabel('Time (s)')
     grid on
     
 % plot(Time,simout_Iout_cap, 'LineWidth',1)
@@ -190,19 +235,75 @@ area(Time,[simout_P_LD_standby, simout_P_LD_USB, simout_P_LD_auxiliary, simout_P
 
 %%
 figure(); 
-subplot(2,2,1)
-    plot(Time,simout_Level_autopilot,'LineWidth',1)
+if JADE_on == 0
+simout_Level_ac = min(4,(simout_P_LD_ac./simout_Preq_LD_AC)/0.25);
+simout_Level_lights = min(4,(simout_P_LD_auxiliary./simout_Preq_LD_lights)/0.25);
+simout_Level_usb = min(4,(simout_P_LD_USB./simout_Preq_LD_USB)/0.25);
+simout_Level_autopilot = min(1,(simout_P_LD_autopilot./simout_Preq_LD_autopilot));
+end
+
+performance_avg = (3+simout_Level_autopilot-(1-simout_Level_ac.*0.25).^3-((1-simout_Level_lights.*0.25)./0.5).^2-(1-simout_Level_usb.*0.25).^1)/4;
+subplot(2,3,1)
+    plot(Time,performance_avg,'LineWidth',1);
+    title('Average Load Performance');
+    ylabel('Performance')
+    grid on
+    xlabel('Time (s)')
+    axis([a b 0 1]);
+    
+    subplot(2,3,2)
+    plot(Time,simout_Level_autopilot*4,'LineWidth',1)
     title('Autopilot');
-    subplot(2,2,2)
+    ylabel('Level')
+    grid on
+    xlabel('Time (s)')
+    axis([a b 0 4]);
+    
+    subplot(2,3,4)
     plot(Time,simout_Level_ac,'LineWidth',1)
     title('A/C');
-    subplot(2,2,3)
+    ylabel('Level')
+    grid on
+    xlabel('Time (s)')
+    axis([a b 0 4]);
+    subplot(2,3,5)
     plot(Time,simout_Level_lights,'LineWidth',1)
     title('Lights');
-    subplot(2,2,4)
+    ylabel('Level')
+    grid on
+    xlabel('Time (s)')
+    axis([a b 2 4]);
+    subplot(2,3,6)
     plot(Time,simout_Level_usb,'LineWidth',1)
     title('USB');
+    ylabel('Level')
+    grid on
+    xlabel('Time (s)')
+    axis([a b 0 4]);
 
+% figure();
+%     plot(Time,1-(1-simout_Level_ac.*0.25).^3,...
+%     Time,1-((1-simout_Level_lights.*0.25)/0.5).^2,...
+%         Time,1-(1-simout_Level_usb.*0.25).^1,'LineWidth',1);
+%     title('Load Performance');
+%     ylabel('Performance')
+%     grid on
+%     xlabel('Time (s)')
+%      legend('A/C','Lights','USB', 'Location','best');
+%     axis([a b 0 1]);
+%     
+%     figure();
+%     plot(Time,(1-(1-simout_Level_ac.*0.25).^3+1-((1-simout_Level_lights.*0.25)/0.5).^2+1-(1-simout_Level_usb.*0.25).^1)/3,'LineWidth',1);
+%     title('Average Load Performance');
+%     ylabel('Performance')
+%     grid on
+%     xlabel('Time (s)')
+%     axis([a b 0 1]);
+%     
+%%
+mean(performance_avg)
+performance_count = performance_avg<1;
+sum(performance_count)/length(performance_avg)
 
 end;
     

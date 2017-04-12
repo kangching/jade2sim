@@ -163,11 +163,13 @@ public class MatlabAgentMB2 extends Agent
 //				reply.setContent(output);
 //				myAgent.send(reply);
 				sendMessage(matlabAgent,output,"send-output",ACLMessage.INFORM);
+				
 				if(pOut >= pMax){
 					sendMessage("obj",Double.toString(pMax),"limit",ACLMessage.INFORM);
 				}else{
-					sendMessage("obj","","good",ACLMessage.INFORM);
+					sendMessage("obj",Double.toString(pOut),"good",ACLMessage.INFORM);
 				}
+
 
 //				System.out.println(getLocalName() + ": Output to Matlab: " + output);
 			}

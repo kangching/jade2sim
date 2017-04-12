@@ -68,7 +68,7 @@ public class MatlabAgentObj extends Agent
 			double mb2Vin, mb2SlopeAdj, mb2V0Adj, mb2Imin, mb2Imax;
 			double sb1Vin, sb1SlopeAdj, sb1V0Adj, sb1Imin, sb1Imax;
 			double sb2Vin, sb2SlopeAdj, sb2V0Adj, sb2Imin, sb2Imax;
-			double acPreq, autopilotPreq, lightsPreq, usbPreq;
+			double acPreq, autopilotPreq, lightsPreq, usbPreq, price;
 			double acLevel = 1.0;
 			double autopilotLevel = 1.0;
 			double lightsLevel = 1.0;
@@ -78,6 +78,8 @@ public class MatlabAgentObj extends Agent
 			double pSB1 = 0.0;
 			double pSB2 = 0.0;
 			double powerBattAll = 0.0;
+			double vBusMin = 17.0;
+			double vBusMax = 25.0;
 			double IoutTotal, relativeSOC1, relativeSOC2;
 			int balanceType;
 			int limitMB1 = 0;
@@ -86,6 +88,7 @@ public class MatlabAgentObj extends Agent
 			int limitSB2 = 0;
 			String input = "";
 			String output = "";
+			String device = "Obj";
 					
 			/* GET PARAMETERS */
 				
@@ -147,25 +150,25 @@ public class MatlabAgentObj extends Agent
 				vBus = parseAnswerDouble(input)[1];
 				iMotor = parseAnswerDouble(input)[2];
 				mb1Vin = parseAnswerDouble(input)[3];
-				mb1SlopeAdj = 0.0; //parseAnswerDouble(input)[6];
+				mb1SlopeAdj = 1.0; //parseAnswerDouble(input)[6];
 				mb1V0Adj = 0.0; //parseAnswerDouble(input)[8];
 				mb1Imin = parseAnswerDouble(input)[11];
 				mb1Imax = parseAnswerDouble(input)[13];
 				
 				mb2Vin = parseAnswerDouble(input)[4];
-				mb2SlopeAdj = 0.0; //parseAnswerDouble(input)[7];
+				mb2SlopeAdj = 1.0; //parseAnswerDouble(input)[7];
 				mb2V0Adj = 0.0; //parseAnswerDouble(input)[9];
 				mb2Imin = parseAnswerDouble(input)[12];
 				mb2Imax = parseAnswerDouble(input)[14];
 				
 				sb1Vin = parseAnswerDouble(input)[5];
-				sb1SlopeAdj = 0.0; //parseAnswerDouble(input)[14];
+				sb1SlopeAdj = 1.0; //parseAnswerDouble(input)[14];
 				sb1V0Adj = 0.0; //parseAnswerDouble(input)[16];
 				sb1Imin = parseAnswerDouble(input)[19];
 				sb1Imax = parseAnswerDouble(input)[21];
 				
 				sb2Vin = parseAnswerDouble(input)[6];
-				sb2SlopeAdj = 0.0; //parseAnswerDouble(input)[15];
+				sb2SlopeAdj = 1.0; //parseAnswerDouble(input)[15];
 				sb2V0Adj = 0.0; //parseAnswerDouble(input)[17];
 				sb2Imin = parseAnswerDouble(input)[20];
 				sb2Imax = parseAnswerDouble(input)[22];
@@ -218,6 +221,14 @@ public class MatlabAgentObj extends Agent
 				
 				sb1SlopeAdj = sb1+1.0;
 				sb2SlopeAdj = sb2+1.0;
+				
+				//
+				mb1SlopeAdj = mb1SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
+				mb2SlopeAdj = mb2SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
+				sb1SlopeAdj = sb1SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
+				sb2SlopeAdj = sb2SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
+				
+//				System.out.println(getLocalName() + ": slopeAdj: " + mb1SlopeAdj);
 				
 				// Load
 				
@@ -280,42 +291,103 @@ public class MatlabAgentObj extends Agent
 					}
 				}
 
-				
-				powerBattAll = pMB1+pMB2+pSB1+pSB2;
-				double powerReqAll = acPreq+lightsPreq+usbPreq;
-				double powerRatio = (powerBattAll-autopilotPreq)/powerReqAll;
-				double loadLevel = usbLevel+acLevel+lightsLevel;
-				
 				if(limitMB1+limitMB2 >= 1){
+					powerBattAll = pMB1+pMB2+pSB1+pSB2;
+					double powerReqAll = acPreq+lightsPreq+usbPreq;
+					double powerRatio = (powerBattAll-autopilotPreq)/powerReqAll;
+	//				double loadLevel = usbLevel+acLevel+lightsLevel;
+					
 					if(powerRatio <=0){
-						usbLevel = 0.0;
-						acLevel = 0.0;
-						lightsLevel = 0.5;
+						price = 1;
+					}else{
+						price = 1-Math.max(0, (powerRatio-0.2)/0.8);
 					}
-					else{
-						while(powerRatio <1 && loadLevel>0.5)
-						{
-							usbLevel = Math.max(usbLevel-0.5,0);
-							acLevel = Math.max(acLevel-0.25,0);
-							lightsLevel = Math.max(lightsLevel-0.25,0.5);
-							powerReqAll = acPreq*acLevel+lightsPreq*lightsLevel+usbPreq*usbLevel;
-							powerRatio = (powerBattAll-autopilotPreq)/powerReqAll;
-							loadLevel = usbLevel+acLevel+lightsLevel;
-							
-						}
-					}
+				}else{
+					price = 0;
 				}
+//				System.out.println(getLocalName() + ": Price: " + powerRatio + "," + powerBattAll + "," + autopilotPreq);
+				
+				
+//				if(limitMB1+limitMB2 >= 1){
+//					if(powerRatio <=0){
+//						usbLevel = 0.0;
+//						acLevel = 0.0;
+//						lightsLevel = 0.5;
+//					}
+//					else{
+//						while(powerRatio <1 && loadLevel>0.5)
+//						{
+//							usbLevel = Math.max(usbLevel-0.5,0);
+//							acLevel = Math.max(acLevel-0.25,0);
+//							lightsLevel = Math.max(lightsLevel-0.25,0.5);
+//							powerReqAll = acPreq*acLevel+lightsPreq*lightsLevel+usbPreq*usbLevel;
+//							powerRatio = (powerBattAll-autopilotPreq)/powerReqAll;
+//							loadLevel = usbLevel+acLevel+lightsLevel;
+//							
+//						}
+//					}
+//				}
 					
 				
-				double[] outputLDac=new double[]{vBus, acPreq, acLevel, simTime};
+				double[] outputLDac=new double[]{vBus, acPreq, price, simTime};
 				double[] outputLDautopilot=new double[]{vBus, autopilotPreq, autopilotLevel, simTime};
-				double[] outputLDlights=new double[]{vBus, lightsPreq, lightsLevel, simTime};
-				double[] outputLDusb=new double[]{vBus, usbPreq, usbLevel, simTime};
+				double[] outputLDlights=new double[]{vBus, lightsPreq, price, simTime};
+				double[] outputLDusb=new double[]{vBus, usbPreq, price, simTime};
 				
-				sendMessage("ac",Arrays.toString(outputLDac).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+//				sendMessage("ac",Arrays.toString(outputLDac).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+//				
+//				MessageTemplate  msgAC= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("ac", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("improve"));
+//				ACLMessage replyAC = receive(msgAC);
+//				
+//				sendMessage("lights",Arrays.toString(outputLDlights).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+//				
+//				MessageTemplate  msgLight= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("lights", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("improve"));
+//				ACLMessage replyLight = receive(msgLight);
+//				
+//				sendMessage("usb",Arrays.toString(outputLDusb).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+//				
+//				MessageTemplate  msgUSB= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("usb", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("improve"));
+//				ACLMessage replyUSB = receive(msgUSB);
+//				
+//				
+//				if(replyAC!=null || replyLight!=null || replyUSB!=null){
+//					String acInput = replyAC.getContent();
+//					double pOutAC = parseAnswerDouble(acInput)[0];
+//					double levelAC = parseAnswerDouble(acInput)[1];
+//					double perfImproveAC = parseAnswerDouble(acInput)[2];
+//					double powerImproveAC = parseAnswerDouble(acInput)[3];
+//					
+//					String lightInput = replyLight.getContent();
+//					double pOutLight = parseAnswerDouble(lightInput)[0];
+//					double levelLight = parseAnswerDouble(lightInput)[1];
+//					double perfImproveLight = parseAnswerDouble(lightInput)[2];
+//					double powerImproveLight = parseAnswerDouble(lightInput)[3];
+//					
+//					String usbInput = replyUSB.getContent();
+//					double pOutUSB = parseAnswerDouble(usbInput)[0];
+//					double levelUSB = parseAnswerDouble(usbInput)[1];
+//					double perfImproveUSB = parseAnswerDouble(usbInput)[2];
+//					double powerImproveUSB = parseAnswerDouble(usbInput)[3];
+//					
+//					
+//					
+//					
+//					
+//					
+//					
+//					
+//					
+//				}
+				
 				sendMessage("autopilot",Arrays.toString(outputLDautopilot).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				sendMessage("ac",Arrays.toString(outputLDac).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
 				sendMessage("lights",Arrays.toString(outputLDlights).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
 				sendMessage("usb",Arrays.toString(outputLDusb).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				
+				output = device + ",mbSlopeAdj,sbSlopeAdj,price,simtime," + Double.toString(mb1SlopeAdj) + "," + Double.toString(sb1SlopeAdj) + "," + Double.toString(price) + "," + simTime;
+				
+				sendMessage(matlabAgent,output,"send-output",ACLMessage.INFORM);
+//				System.out.println(getLocalName() + ": Output to Matlab: " + output);
 				
 			}
 			
@@ -367,6 +439,12 @@ public class MatlabAgentObj extends Agent
 		return data;
 	}
 	
+	private double saturation(double input, double upperLimit, double lowerLimit)
+	{
+		double output;
+		output = Math.min(Math.max(input, lowerLimit), upperLimit);
+		return output;
+	}
 //	private Object[][] parseAnswerString(String answer)
 //	{
 //		// Split the incoming string
