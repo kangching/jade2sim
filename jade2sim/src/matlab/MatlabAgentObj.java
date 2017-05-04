@@ -52,7 +52,41 @@ public class MatlabAgentObj extends Agent
 	 */
 	class CommWithMatlab extends SimpleBehaviour
 	{
-
+		double mb1, mb2, sb1, sb2, load, mb1Iout, mb2Iout, mb1SOC, mb2SOC, sb1SOC, sb2SOC;
+		double vBus, iMotor, simTime;
+		double mb1Vin, mb1SlopeAdj, mb1V0Adj, mb1Imin, mb1Imax;
+		double mb2Vin, mb2SlopeAdj, mb2V0Adj, mb2Imin, mb2Imax;
+		double sb1Vin, sb1SlopeAdj, sb1V0Adj, sb1Imin, sb1Imax;
+		double sb2Vin, sb2SlopeAdj, sb2V0Adj, sb2Imin, sb2Imax;
+		double acPreq, autopilotPreq, lightsPreq, usbPreq, price;
+		// price coefficients: beta
+		double lightsBeta = 1.5;
+		double acBeta = 1.2;
+		double usbBeta = 1.0;
+		// price shift: delta
+		double lightsDelta = 0.0;
+		double acDelta = 0.0;
+		double usbDelta = 0.0;
+		double autopilotLevel = 1.0;
+		double priceAdj = 0.0;
+		double lightsLevel, acLevel, usbLevel, lightsAlpha, acAlpha, usbAlpha, lightsLevelMin, acLevelMin, usbLevelMin;
+		double powerReqAll;
+		double pMB1 = 0.0;
+		double pMB2 = 0.0;
+		double pSB1 = 0.0;
+		double pSB2 = 0.0;
+		double powerBattAll = 0.0;
+		double vBusMin = 17.0;
+		double vBusMax = 25.0;
+		double IoutTotal, relativeSOC1, relativeSOC2;
+		int balanceType;
+		int limitMB1 = 0;
+		int limitMB2 = 0;
+		int limitSB1 = 0;
+		int limitSB2 = 0;
+		String input = "";
+		String output = "";
+		String device = "Obj";
 		private static final long serialVersionUID = 8966535884137111965L;
 
 
@@ -62,33 +96,7 @@ public class MatlabAgentObj extends Agent
 
 			// Local variables
 //			String params;
-			double mb1, mb2, sb1, sb2, load, mb1Iout, mb2Iout, mb1SOC, mb2SOC, sb1SOC, sb2SOC;
-			double vBus, iMotor, simTime;
-			double mb1Vin, mb1SlopeAdj, mb1V0Adj, mb1Imin, mb1Imax;
-			double mb2Vin, mb2SlopeAdj, mb2V0Adj, mb2Imin, mb2Imax;
-			double sb1Vin, sb1SlopeAdj, sb1V0Adj, sb1Imin, sb1Imax;
-			double sb2Vin, sb2SlopeAdj, sb2V0Adj, sb2Imin, sb2Imax;
-			double acPreq, autopilotPreq, lightsPreq, usbPreq, price;
-			double acLevel = 1.0;
-			double autopilotLevel = 1.0;
-			double lightsLevel = 1.0;
-			double usbLevel = 1.0;
-			double pMB1 = 0.0;
-			double pMB2 = 0.0;
-			double pSB1 = 0.0;
-			double pSB2 = 0.0;
-			double powerBattAll = 0.0;
-			double vBusMin = 17.0;
-			double vBusMax = 25.0;
-			double IoutTotal, relativeSOC1, relativeSOC2;
-			int balanceType;
-			int limitMB1 = 0;
-			int limitMB2 = 0;
-			int limitSB1 = 0;
-			int limitSB2 = 0;
-			String input = "";
-			String output = "";
-			String device = "Obj";
+
 					
 			/* GET PARAMETERS */
 				
@@ -291,24 +299,16 @@ public class MatlabAgentObj extends Agent
 					}
 				}
 
-				if(limitMB1+limitMB2 >= 1){
+
 					powerBattAll = pMB1+pMB2+pSB1+pSB2;
-					double powerReqAll = acPreq+lightsPreq+usbPreq;
-					double powerRatio = (powerBattAll-autopilotPreq)/powerReqAll;
-	//				double loadLevel = usbLevel+acLevel+lightsLevel;
-					
-					if(powerRatio <=0){
-						price = 1;
-					}else{
-						price = 1-Math.max(0, (powerRatio-0.2)/0.8);
-					}
-				}else{
-					price = 0;
-				}
+					powerReqAll = powerBattAll - autopilotPreq;
+
 //				System.out.println(getLocalName() + ": Price: " + powerRatio + "," + powerBattAll + "," + autopilotPreq);
 				
 				
-//				if(limitMB1+limitMB2 >= 1){
+				if(limitMB1+limitMB2 >= 1){
+					priceAdj = 0.2*Math.exp(-(vBus-vBusMin));
+				}
 //					if(powerRatio <=0){
 //						usbLevel = 0.0;
 //						acLevel = 0.0;
@@ -329,60 +329,65 @@ public class MatlabAgentObj extends Agent
 //				}
 					
 				
-				double[] outputLDac=new double[]{vBus, acPreq, price, simTime};
+				double[] outputLDac=new double[]{vBus, acPreq, price, simTime, acDelta, acBeta};
 				double[] outputLDautopilot=new double[]{vBus, autopilotPreq, autopilotLevel, simTime};
-				double[] outputLDlights=new double[]{vBus, lightsPreq, price, simTime};
-				double[] outputLDusb=new double[]{vBus, usbPreq, price, simTime};
-				
-//				sendMessage("ac",Arrays.toString(outputLDac).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
-//				
-//				MessageTemplate  msgAC= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("ac", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("improve"));
-//				ACLMessage replyAC = receive(msgAC);
-//				
-//				sendMessage("lights",Arrays.toString(outputLDlights).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
-//				
-//				MessageTemplate  msgLight= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("lights", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("improve"));
-//				ACLMessage replyLight = receive(msgLight);
-//				
-//				sendMessage("usb",Arrays.toString(outputLDusb).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
-//				
-//				MessageTemplate  msgUSB= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("usb", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("improve"));
-//				ACLMessage replyUSB = receive(msgUSB);
-//				
-//				
-//				if(replyAC!=null || replyLight!=null || replyUSB!=null){
-//					String acInput = replyAC.getContent();
-//					double pOutAC = parseAnswerDouble(acInput)[0];
-//					double levelAC = parseAnswerDouble(acInput)[1];
-//					double perfImproveAC = parseAnswerDouble(acInput)[2];
-//					double powerImproveAC = parseAnswerDouble(acInput)[3];
-//					
-//					String lightInput = replyLight.getContent();
-//					double pOutLight = parseAnswerDouble(lightInput)[0];
-//					double levelLight = parseAnswerDouble(lightInput)[1];
-//					double perfImproveLight = parseAnswerDouble(lightInput)[2];
-//					double powerImproveLight = parseAnswerDouble(lightInput)[3];
-//					
-//					String usbInput = replyUSB.getContent();
-//					double pOutUSB = parseAnswerDouble(usbInput)[0];
-//					double levelUSB = parseAnswerDouble(usbInput)[1];
-//					double perfImproveUSB = parseAnswerDouble(usbInput)[2];
-//					double powerImproveUSB = parseAnswerDouble(usbInput)[3];
-//					
-//					
-//					
-//					
-//					
-//					
-//					
-//					
-//					
-//				}
+				double[] outputLDlights=new double[]{lightsDelta, lightsPreq, lightsBeta, simTime};
+				double[] outputLDusb=new double[]{usbDelta, usbPreq, usbBeta, simTime};
 				
 				sendMessage("autopilot",Arrays.toString(outputLDautopilot).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
-				sendMessage("ac",Arrays.toString(outputLDac).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
-				sendMessage("lights",Arrays.toString(outputLDlights).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
-				sendMessage("usb",Arrays.toString(outputLDusb).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				
+				sendMessage("ac",Arrays.toString(outputLDac).replace("[", "").replace("]", ""),"get-bid",ACLMessage.INFORM);
+				
+				MessageTemplate  msgAC= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("ac", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("bid"));
+				ACLMessage replyAC = receive(msgAC);
+				
+				sendMessage("lights",Arrays.toString(outputLDlights).replace("[", "").replace("]", ""),"get-bid",ACLMessage.INFORM);
+				
+				MessageTemplate  msgLight= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("lights", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("bid"));
+				ACLMessage replyLight = receive(msgLight);
+				
+				sendMessage("usb",Arrays.toString(outputLDusb).replace("[", "").replace("]", ""),"get-bid",ACLMessage.INFORM);
+				
+				MessageTemplate  msgUSB= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("usb", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("bid"));
+				ACLMessage replyUSB = receive(msgUSB);
+				
+				
+				if(replyAC!=null && replyLight!=null && replyUSB!=null){
+					String acInput = replyAC.getContent();
+					acAlpha = parseAnswerDouble(acInput)[0];
+					acLevelMin = parseAnswerDouble(acInput)[1];
+					
+					String lightInput = replyLight.getContent();
+					lightsAlpha = parseAnswerDouble(lightInput)[0];
+					lightsLevelMin = parseAnswerDouble(lightInput)[1];
+					
+					String usbInput = replyUSB.getContent();
+					usbAlpha = parseAnswerDouble(usbInput)[0];
+					usbLevelMin = parseAnswerDouble(usbInput)[1];
+					
+					double[] performanceAC = pricePerformance(acBeta, acDelta);
+					double[] performanceLights = pricePerformance(lightsBeta, lightsDelta);
+					double[] performanceUSB = pricePerformance(usbBeta, usbDelta);
+					
+					double[] bidAC = pricePower(performanceAC, acAlpha, acLevelMin, acPreq);
+					double[] bidLights = pricePower(performanceLights, lightsAlpha, lightsLevelMin, lightsPreq);
+					double[] bidUSB = pricePower(performanceUSB, usbAlpha, usbLevelMin, usbPreq);
+					
+					double[] bidTotal = new double[bidAC.length];
+					for (int i=0; i<bidTotal.length; i++){
+						bidTotal[i] = bidAC[i]+bidLights[i]+bidUSB[i];
+					}
+					
+					price = findPrice(bidTotal, powerReqAll)+priceAdj;
+//					System.out.println(getLocalName() + ": Price: " +  Double.toString(price));
+					
+					
+					sendMessage("ac",Double.toString(price),"price",ACLMessage.INFORM);
+					sendMessage("lights",Double.toString(price),"price",ACLMessage.INFORM);
+					sendMessage("usb",Double.toString(price),"price",ACLMessage.INFORM);
+				}
+//				
+
 				
 				output = device + ",mbSlopeAdj,sbSlopeAdj,price,simtime," + Double.toString(mb1SlopeAdj) + "," + Double.toString(sb1SlopeAdj) + "," + Double.toString(price) + "," + simTime;
 				
@@ -444,6 +449,48 @@ public class MatlabAgentObj extends Agent
 		double output;
 		output = Math.min(Math.max(input, lowerLimit), upperLimit);
 		return output;
+	}
+	
+	private double[] pricePerformance(double beta, double delta)
+	{
+		double priceMax = 1.2;
+		double priceInterval = 0.05;
+		double[] performance = new double[(int) (priceMax*priceInterval)+1];
+		for (int i = 0; i < performance.length; i++){
+			performance[i] = Math.max(Math.min(beta*(1+delta-i*priceInterval), 1), 0);
+		}
+		return performance;
+	}
+	
+	private double[] pricePower(double[] performance, double alpha, double levelMin, double pReq)
+	{
+		double[] power = new double[performance.length];
+		for (int i = 0; i < power.length; i++){
+			power[i] = (1-Math.pow(1-performance[i],1/alpha)*(1-levelMin))*pReq;
+		}
+		return power;
+	}
+	
+	private double findPrice(double[] bidTotal, double power)
+	{
+		int indexP1 = 0;
+		int indexP2 = 0;
+		double price;
+		for (int i = 0; i < bidTotal.length; i++){
+			if ((bidTotal[i]-power) < 0){
+				indexP2 = i;
+				indexP1 = i-1;
+				break;
+			}
+				
+		}
+		
+		if (indexP2 !=0){
+			price = ((power-bidTotal[indexP2])/(bidTotal[indexP1]-bidTotal[indexP2])+indexP1)*0.05;
+		}else{
+			price = 0.0;
+		}
+		return price;
 	}
 //	private Object[][] parseAnswerString(String answer)
 //	{

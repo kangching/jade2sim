@@ -89,7 +89,7 @@ figure();
     subplot(3,2,5);
     plot(Time,bus_std,'LineWidth',2)
     title('Bus Voltage Std');
-    ylabel('% of Time')
+    ylabel('std')
     axis([a b 0 1.5]);
     xlabel('Time (s)')
     grid on
@@ -235,14 +235,6 @@ area(Time,[simout_P_LD_standby, simout_P_LD_USB, simout_P_LD_auxiliary, simout_P
 
 %%
 figure(); 
-if JADE_on == 0
-simout_Level_ac = min(4,(simout_P_LD_ac./simout_Preq_LD_AC)/0.25);
-simout_Level_lights = min(4,(simout_P_LD_auxiliary./simout_Preq_LD_lights)/0.25);
-simout_Level_usb = min(4,(simout_P_LD_USB./simout_Preq_LD_USB)/0.25);
-simout_Level_autopilot = min(1,(simout_P_LD_autopilot./simout_Preq_LD_autopilot));
-end
-
-performance_avg = (3+simout_Level_autopilot-(1-simout_Level_ac.*0.25).^3-((1-simout_Level_lights.*0.25)./0.5).^2-(1-simout_Level_usb.*0.25).^1)/4;
 subplot(2,3,1)
     plot(Time,performance_avg,'LineWidth',1);
     title('Average Load Performance');
@@ -252,12 +244,12 @@ subplot(2,3,1)
     axis([a b 0 1]);
     
     subplot(2,3,2)
-    plot(Time,simout_Level_autopilot*4,'LineWidth',1)
+    plot(Time,simout_Level_autopilot,'LineWidth',1)
     title('Autopilot');
     ylabel('Level')
     grid on
     xlabel('Time (s)')
-    axis([a b 0 4]);
+    axis([a b 0 1]);
     
     subplot(2,3,4)
     plot(Time,simout_Level_ac,'LineWidth',1)
@@ -265,21 +257,21 @@ subplot(2,3,1)
     ylabel('Level')
     grid on
     xlabel('Time (s)')
-    axis([a b 0 4]);
+    axis([a b 0 1]);
     subplot(2,3,5)
     plot(Time,simout_Level_lights,'LineWidth',1)
     title('Lights');
     ylabel('Level')
     grid on
     xlabel('Time (s)')
-    axis([a b 2 4]);
+    axis([a b 0 1]);
     subplot(2,3,6)
     plot(Time,simout_Level_usb,'LineWidth',1)
     title('USB');
     ylabel('Level')
     grid on
     xlabel('Time (s)')
-    axis([a b 0 4]);
+    axis([a b 0 1]);
 
 % figure();
 %     plot(Time,1-(1-simout_Level_ac.*0.25).^3,...
@@ -301,9 +293,7 @@ subplot(2,3,1)
 %     axis([a b 0 1]);
 %     
 %%
-mean(performance_avg)
-performance_count = performance_avg<1;
-sum(performance_count)/length(performance_avg)
+
 
 end;
     

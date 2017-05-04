@@ -291,6 +291,7 @@ public class MatlabAgentCom extends Agent
 							outputUSB = outputReplyUSB.getContent();
 							outputObj = outputReplyObj.getContent();
 							String outputAnswer = callMatlab("send-output-all," + outputMB1 + "," + outputMB2 + "," + outputSB1 + ","  + outputSB2 + ","  + outputAC + ","  + outputAutopilot + ","  + outputLights + ","  + outputUSB + ","  + outputObj);
+							
 							outputMB1 = "";
 							outputMB2 = "";
 							outputSB1 = "";

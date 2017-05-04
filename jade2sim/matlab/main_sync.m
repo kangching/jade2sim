@@ -546,12 +546,15 @@ if JADE_on == 0
     % set_param(sys,'StopTime',num2str(period));
     sim(sys)%, 'SrcWorkspace' , 'current')
     toc
+simout_Level_autopilot = min(simout_P_LD_autopilot./simout_Preq_LD_autopilot,ones(size(simout_P_LD_autopilot)));    
+simout_Level_ac = simout_P_LD_ac./simout_Preq_LD_AC;
+simout_Level_lights = simout_P_LD_auxiliary./simout_Preq_LD_lights;
+simout_Level_usb = simout_P_LD_USB./simout_Preq_LD_USB;
 end
 %%
 disp(['Loading...']);
 
-run('data/scripts/results_plots.m');
-run('data/scripts/energy_plots.m'); %% first enable/uncomment blocks
+ %% first enable/uncomment blocks
 %run('data/scripts/write_output.m'); %% first enable/uncomment Misc/Data Logging
 
 %% 
@@ -568,7 +571,7 @@ end
 travel_distance = sum(simout_vel_kph)/3600;
 Eff_Veh = P_Electrical_Storage/travel_distance*100;
 
-
+if JADE_on == 1
 %% Read time and update interval
 update_time = output_time;
 for i = 1:size(update_time,1)-1
@@ -594,20 +597,45 @@ ylabel('Interval (s)');
 interval_avg = mean(time_interval(:,2));
 gap_max = max(update_time(:,2)-update_time(:,1));
 gap_avg = mean(update_time(:,2)-update_time(:,1));
+end
 
 %%
 busVlower = 19;
 busVupper = 25;
+bus_range_index = NaN(size(simout_Vcap));
+bus_std = NaN(size(simout_Vcap));
 
 bus_range_int = find(simout_Vcap>=busVlower,1);
 bus_range = (simout_Vcap>=busVlower & simout_Vcap<=busVupper);
 
-for i = bus_range_int:length(bus_range)
-    bus_range_index(i,1) = sum(bus_range(bus_range_int:i,1))/(i-bus_range_int+1);
-    bus_std(i,1) = std(simout_Vcap(bus_range_int:i,1));
+for i = 1:length(bus_range)
+    bus_range_index(i,1) = sum(bus_range(1:i,1))/(i);
+end
+
+for i = 60*5:length(bus_range)
+    bus_std(i,1) = std(simout_Vcap(i-60*5+1:i,1));
 end
 
 
 %%
-%save('04122017_c5_ac350_2usb1300_JADE.mat');
-save('04122017_c5_ac350_2usb1300_sim.mat');
+
+performance_autopilot = max(1-((1-simout_Level_autopilot)./(1-0)).^(1/3),zeros(size(simout_Level_autopilot)));
+performance_autopilot(simout_Preq_LD_autopilot==0)=NaN;
+performance_ac = max(1-((1-simout_Level_ac)./(1-0)).^3,zeros(size(simout_Level_ac)));
+performance_ac(simout_Preq_LD_AC==0)=NaN;
+performance_lights = max(1-((1-simout_Level_lights)./(1-0.5)).^2,zeros(size(simout_Level_lights)));
+performance_lights(simout_Preq_LD_lights==0)=NaN;
+performance_usb = max(1-((1-simout_Level_usb)./(1-0)).^1,zeros(size(simout_Level_usb)));
+performance_usb(simout_Preq_LD_USB==0)=NaN;
+
+performance_avg = mean([performance_autopilot,performance_ac,performance_lights,performance_usb],2,'omitnan');
+
+mean(performance_avg)
+performance_count = performance_avg<1;
+sum(performance_count)/length(performance_avg)
+%%
+run('data/scripts/results_plots.m');
+run('data/scripts/energy_plots.m');
+%%
+save('05042017_c5_ac350_2usb1300_JADE2.mat');
+%save('04252017_c5_ac350_2usb1300_sim.mat');
