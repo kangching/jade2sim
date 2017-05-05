@@ -62,28 +62,32 @@ public class MatlabAgentObj extends Agent
 		// price coefficients: beta
 		double lightsBeta = 1.5;
 		double acBeta = 1.2;
-		double usbBeta = 1.0;
+		double usbBeta = 1.1;
 		// price shift: delta
 		double lightsDelta = 0.0;
 		double acDelta = 0.0;
 		double usbDelta = 0.0;
 		double autopilotLevel = 1.0;
-		double priceAdj = 0.0;
+		double vBusMin = 17.0;
+		double vBusMax = 25.0;
+		
+		double priceAdj;
 		double lightsLevel, acLevel, usbLevel, lightsAlpha, acAlpha, usbAlpha, lightsLevelMin, acLevelMin, usbLevelMin;
+		double powerBattAll;
 		double powerReqAll;
+		double powerSupplyAll;
 		double pMB1 = 0.0;
 		double pMB2 = 0.0;
 		double pSB1 = 0.0;
 		double pSB2 = 0.0;
-		double powerBattAll = 0.0;
-		double vBusMin = 17.0;
-		double vBusMax = 25.0;
+		
+
 		double IoutTotal, relativeSOC1, relativeSOC2;
 		int balanceType;
-		int limitMB1 = 0;
-		int limitMB2 = 0;
-		int limitSB1 = 0;
-		int limitSB2 = 0;
+		int limitMB1;
+		int limitMB2;
+		int limitSB1;
+		int limitSB2;
 		String input = "";
 		String output = "";
 		String device = "Obj";
@@ -199,6 +203,11 @@ public class MatlabAgentObj extends Agent
 				
 				simTime = parseAnswerDouble(input)[0];
 				
+				limitMB1 = 0;
+				limitMB2 = 0;
+				limitSB1 = 0;
+				limitSB2 = 0;
+				priceAdj = 0.0;
 				// SOC Balance 
 				if(mb1+mb2>=2)
 				{
@@ -301,14 +310,15 @@ public class MatlabAgentObj extends Agent
 
 
 					powerBattAll = pMB1+pMB2+pSB1+pSB2;
-					powerReqAll = powerBattAll - autopilotPreq;
+					powerReqAll= acPreq + lightsPreq + usbPreq;
+					powerSupplyAll = powerBattAll - autopilotPreq;
 
 //				System.out.println(getLocalName() + ": Price: " + powerRatio + "," + powerBattAll + "," + autopilotPreq);
 				
-				
-				if(limitMB1+limitMB2 >= 1){
-					priceAdj = 0.2*Math.exp(-(vBus-vBusMin));
-				}
+
+//				if(limitMB1+limitMB2 >= 1){
+					priceAdj = 1.0*Math.exp(-(vBus-vBusMin));
+//				}
 //					if(powerRatio <=0){
 //						usbLevel = 0.0;
 //						acLevel = 0.0;
@@ -378,7 +388,7 @@ public class MatlabAgentObj extends Agent
 						bidTotal[i] = bidAC[i]+bidLights[i]+bidUSB[i];
 					}
 					
-					price = findPrice(bidTotal, powerReqAll)+priceAdj;
+					price = findPrice(bidTotal, powerSupplyAll)+priceAdj;
 //					System.out.println(getLocalName() + ": Price: " +  Double.toString(price));
 					
 					

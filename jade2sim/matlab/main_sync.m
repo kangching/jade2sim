@@ -618,13 +618,19 @@ end
 
 
 %%
-
+simout_Level_autopilot(simout_Preq_LD_autopilot==0)=NaN;
 performance_autopilot = max(1-((1-simout_Level_autopilot)./(1-0)).^(1/3),zeros(size(simout_Level_autopilot)));
 performance_autopilot(simout_Preq_LD_autopilot==0)=NaN;
+
+simout_Level_ac(simout_Preq_LD_AC==0)=NaN;
 performance_ac = max(1-((1-simout_Level_ac)./(1-0)).^3,zeros(size(simout_Level_ac)));
 performance_ac(simout_Preq_LD_AC==0)=NaN;
+
+simout_Level_lights(simout_Preq_LD_lights==0)=NaN;
 performance_lights = max(1-((1-simout_Level_lights)./(1-0.5)).^2,zeros(size(simout_Level_lights)));
 performance_lights(simout_Preq_LD_lights==0)=NaN;
+
+simout_Level_usb(simout_Preq_LD_USB==0)=NaN;
 performance_usb = max(1-((1-simout_Level_usb)./(1-0)).^1,zeros(size(simout_Level_usb)));
 performance_usb(simout_Preq_LD_USB==0)=NaN;
 
@@ -637,5 +643,5 @@ sum(performance_count)/length(performance_avg)
 run('data/scripts/results_plots.m');
 run('data/scripts/energy_plots.m');
 %%
-save('05042017_c5_ac350_2usb1300_JADE2.mat');
+save('05042017_c5_ac350_2usb1300_JADE_PmaxAdj_usbCoe1.1.mat');
 %save('04252017_c5_ac350_2usb1300_sim.mat');

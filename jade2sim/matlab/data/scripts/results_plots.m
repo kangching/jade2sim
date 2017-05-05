@@ -172,7 +172,7 @@ subplot(2,2,2);
         'Autopilot Load Input', ...
         'A/C Load Input','Location','SouthEast');
     xlabel('Time (s)')
-    axis([a b 0 250]);    
+    axis([a b 0 260]);    
     
 % subplot(2,2,2);
 % plot(Time,simout_MB_var(:,1), ...

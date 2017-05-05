@@ -62,7 +62,7 @@ public class MatlabAgentLoadAutopilot extends Agent
 			// Local variables
 			String device = "LD_Autopilot";
 			double level, pReq, pMax, pOut, vBus, simTime;
-			double busPmaxAbs = 250.0;
+			double busPmaxAbs = 260.0;
 			double vBusMax = 25.0;
 			double vBusMin = 17.0;
 			double beta = 0.9;

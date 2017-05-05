@@ -64,7 +64,7 @@ public class MatlabAgentLoadAC extends Agent
 		private double levelMin = 0;
 		private double delta;
 		private String output;
-		double busPmaxAbs = 250.0;
+		double busPmaxAbs = 240.0;
 		double vBusMax = 25.0;
 		double vBusMin = 17.0;
 		double bus_beta = 0.9;
