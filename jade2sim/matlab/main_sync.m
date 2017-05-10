@@ -14,7 +14,7 @@ disp(['Loading...']);
 %sim
 JADE_on = 0;
 cyc_repeat = 1; %repeat drive/pedal cycle or stop at the end
-cyc_repeat_times = 5;
+cyc_repeat_times = 1;
 sample_time = 0.01; %[s]
 stop_option = 0; %stop on: 0 SOC, 1 both, 2 Vbatt, 3 none
 %IO
@@ -110,7 +110,7 @@ air_density = 1.225; %kg/m^3
 veh_gravity = 9.81*veh_mass; %g [m/s^2]
 
 % PV panel module
-PV_Pmax = 100; %W
+PV_Pmax = 500; %W
 
 % Subsystems loads (medium voltage bus "loads" module)
 rawcsv = csvread('data\MI_Prius_power_measurements.csv');
@@ -643,10 +643,10 @@ performance_count = performance_avg<1;
 sum(performance_count)/length(performance_avg)
 %%
 run('data/scripts/results_plots.m');
-run('data/scripts/energy_plots.m');
+%run('data/scripts/energy_plots.m');
 %%
 %save('05042017_c5_ac350_2usb1300_JADE_PmaxAdj_usbCoe1.1.mat');
-save('05092017_c5_ac60_2usb60_sim_autopilotLevel.mat');
+save('05092017_PV175_sim.mat');
 
 %%
 bus_range_time_final = bus_range_index(end,1)

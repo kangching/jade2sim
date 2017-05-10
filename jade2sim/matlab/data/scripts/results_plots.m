@@ -293,7 +293,17 @@ subplot(2,3,1)
 %     axis([a b 0 1]);
 %     
 %%
-
+figure();
+plot(Time,simout_P_PV_input,...
+    Time, simout_P_PV_output,...
+    'LineWidth',1);
+grid on;
+    title('PV');
+    ylabel('Power (W)')
+    legend('PV input',...
+        'PV output','Location','SouthEast');
+    xlabel('Time (s)')
+    axis([a b 0 500]);
 
 end;
     
