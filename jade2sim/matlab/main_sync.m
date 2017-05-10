@@ -12,7 +12,7 @@ close all;
 disp(['Loading...']);
 
 %sim
-JADE_on = 1;
+JADE_on = 0;
 cyc_repeat = 1; %repeat drive/pedal cycle or stop at the end
 cyc_repeat_times = 5;
 sample_time = 0.01; %[s]
@@ -48,8 +48,8 @@ ess2_soh = 1;
 
 % Secondary Batteries
 run('data/energy_storage/ESS_CE165_360_6S2P.m');
-ess3_init_soc = 0.5;%0.7;
-ess4_init_soc = 0.5;%0.7;
+ess3_init_soc = 1;%0.7;
+ess4_init_soc = 1;%0.7;
 ess3_soh = 1;
 ess4_soh = 1;
 
@@ -80,7 +80,8 @@ vbus_min = 17; %V
 vbus_max = 25; %V
 vbus_threshold = 20; %V threshold for startup
 vbus_safety_threshold = 2; %V beyond min/max for which system shuts off
-bus_load_Pmax_abs = 250; %500%W
+bus_load_Pmax_abs = 260; %500%W
+bus_ac_Pmax_abs = 240; 
 bus_charger_Pmax = 1000; %W
 
 
@@ -546,7 +547,8 @@ if JADE_on == 0
     % set_param(sys,'StopTime',num2str(period));
     sim(sys)%, 'SrcWorkspace' , 'current')
     toc
-simout_Level_autopilot = min(simout_P_LD_autopilot./simout_Preq_LD_autopilot,ones(size(simout_P_LD_autopilot)));    
+%simout_Level_autopilot = min(simout_P_LD_autopilot./simout_Preq_LD_autopilot,ones(size(simout_P_LD_autopilot)));    
+simout_Level_autopilot = simout_Level_autopilot_sim;
 simout_Level_ac = simout_P_LD_ac./simout_Preq_LD_AC;
 simout_Level_lights = simout_P_LD_auxiliary./simout_Preq_LD_lights;
 simout_Level_usb = simout_P_LD_USB./simout_Preq_LD_USB;
@@ -643,5 +645,11 @@ sum(performance_count)/length(performance_avg)
 run('data/scripts/results_plots.m');
 run('data/scripts/energy_plots.m');
 %%
-save('05042017_c5_ac350_2usb1300_JADE_PmaxAdj_usbCoe1.1.mat');
-%save('04252017_c5_ac350_2usb1300_sim.mat');
+%save('05042017_c5_ac350_2usb1300_JADE_PmaxAdj_usbCoe1.1.mat');
+save('05092017_c5_ac60_2usb60_sim_autopilotLevel.mat');
+
+%%
+bus_range_time_final = bus_range_index(end,1)
+bus_std_avg = mean(bus_std,'omitnan')
+mean(performance_avg)
+1-sum(performance_count)/length(performance_avg)
