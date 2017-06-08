@@ -41,15 +41,15 @@ end
 end
 % Main Batteries
 run('data/energy_storage/ESS_CP155_365_6S2P.m');
-ess1_init_soc = 1;%0.7;
-ess2_init_soc = 1;%0.7;
+ess1_init_soc = 0.7;%0.7;
+ess2_init_soc = 0.7;%0.7;
 ess1_soh = 1;
 ess2_soh = 1;
 
 % Secondary Batteries
 run('data/energy_storage/ESS_CE165_360_6S2P.m');
-ess3_init_soc = 1;%0.7;
-ess4_init_soc = 1;%0.7;
+ess3_init_soc = 0.7;%0.7;
+ess4_init_soc = 0.7;%0.7;
 ess3_soh = 1;
 ess4_soh = 1;
 
@@ -110,7 +110,7 @@ air_density = 1.225; %kg/m^3
 veh_gravity = 9.81*veh_mass; %g [m/s^2]
 
 % PV panel module
-PV_Pmax = 500; %W
+PV_Pmax = 100; %W
 
 % Subsystems loads (medium voltage bus "loads" module)
 rawcsv = csvread('data\MI_Prius_power_measurements.csv');
@@ -638,7 +638,9 @@ performance_usb(simout_Preq_LD_USB==0)=NaN;
 
 performance_avg = mean([performance_autopilot,performance_ac,performance_lights,performance_usb],2,'omitnan');
 
-mean(performance_avg)
+performance_avg_weighted = mean([performance_autopilot*5.0,performance_ac*2.0,performance_lights*3.0,performance_usb],2,'omitnan');
+
+mean(performance_avg_weighted)
 performance_count = performance_avg<1;
 sum(performance_count)/length(performance_avg)
 %%
@@ -646,10 +648,16 @@ run('data/scripts/results_plots.m');
 %run('data/scripts/energy_plots.m');
 %%
 %save('05042017_c5_ac350_2usb1300_JADE_PmaxAdj_usbCoe1.1.mat');
-save('05092017_PV175_sim.mat');
+%save('05092017_PV175_sim.mat');
 
 %%
 bus_range_time_final = bus_range_index(end,1)
 bus_std_avg = mean(bus_std,'omitnan')
 mean(performance_avg)
 1-sum(performance_count)/length(performance_avg)
+
+%%
+figure;
+contour(mc_map_trq,mc_map_spd,mc_inpwr_map,'ShowText','on');
+xlabel('Torque(Nm)');
+ylabel('Motor rot. speed(rad/s)');
