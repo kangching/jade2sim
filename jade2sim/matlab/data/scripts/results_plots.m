@@ -16,7 +16,7 @@ if use_drive_cycle == 0
     grid on
     legend('Acceleration','Braking','Location','NorthWest')
 
-    subplot(2,2,2);
+    subplot(2,2,3);
     plot(Time,simout_vel_kph,'LineWidth',2)    
     title('Velocity')
     ylabel('Velocity (km/h)')    
@@ -34,26 +34,9 @@ if use_drive_cycle == 1
     grid on;
     legend('Velocity command','Vehicle velocity','Location','best');
     axis([a b 0 50]);
-    
-    subplot(2,2,2);
-    plot(Time,simout_SOC_MB1, ...
-    Time,simout_SOC_MB2, ...
-    Time,simout_SOC_SB1, ...    
-    Time,simout_SOC_AB,...
-    'LineWidth',2)
-    title('SOC')
-    ylabel('%')
-    legend('Motor Battery 1', ... 
-        'Motor Battery 2', ... 
-        'Secondary Battery 1', ... 
-        'Auxiliary Battery', 'Location','best')
-    xlabel('Time (s)')
-    axis([a b 0.4 1]);
-    grid on
-
 
 end;
-      
+
     subplot(2,2,4);
     plot(Time,simout_Vcap,'LineWidth',2)
     title('Bus Voltage')
@@ -61,57 +44,57 @@ end;
     axis([a b 0 25]);
     grid on
 
-    subplot(2,2,3);
+    subplot(2,2,2);
     plot(Time,simout_Pmotor,'LineWidth',2)
     title('Motor Power')
     ylabel('Power (W)')
-    axis([a b 0 3000]);
+    axis([a b -500 3500]);
     grid on 
 %%
-figure();
-    subplot(3,2,1);
-    plot(Time,simout_Vcap,'LineWidth',2)
-    title('Bus Voltage')
-    ylabel('Voltage (V)')
-    axis([a b 0 25]);
-    xlabel('Time (s)')
-    grid on
-
-    subplot(3,2,3);
-    plot(Time,bus_range_index,'LineWidth',2)
-    title(['Bus Voltage = [',num2str(busVlower),',',num2str(busVupper),']']);
-    
-    ylabel('% of Time')
-    axis([a b 0.5 1]);
-    xlabel('Time (s)')
-    grid on
-    
-    subplot(3,2,5);
-    plot(Time,bus_std,'LineWidth',2)
-    title('Bus Voltage Std');
-    ylabel('std')
-    axis([a b 0 1.5]);
-    xlabel('Time (s)')
-    grid on
-
-    subplot(3,2,2);
-    plot(Time,simout_MB_SlopAdj.*50,'LineWidth',2)
-    title('MB DCDC Slope')
-    ylabel('Voltage (V)')
-    axis([a b 50 60]);
-    xlabel('Time (s)')
-    grid on
-
-    subplot(3,2,4);
-    plot(Time,simout_price,'LineWidth',2)
-    title('Price');
-    axis([a b 0 1]);
-    grid on;
-    xlabel('Time (s)')
+% figure();
+%     subplot(3,2,1);
+%     plot(Time,simout_Vcap,'LineWidth',2)
+%     title('Bus Voltage')
+%     ylabel('Voltage (V)')
+%     axis([a b 0 25]);
+%     xlabel('Time (s)')
+%     grid on
+% 
+%     subplot(3,2,3);
+%     plot(Time,bus_range_index,'LineWidth',2)
+%     title(['Bus Voltage = [',num2str(busVlower),',',num2str(busVupper),']']);
+%     
+%     ylabel('% of Time')
+%     axis([a b 0.5 1]);
+%     xlabel('Time (s)')
+%     grid on
+%     
+%     subplot(3,2,5);
+%     plot(Time,bus_std,'LineWidth',2)
+%     title('Bus Voltage Std');
+%     ylabel('std')
+%     axis([a b 0 1.5]);
+%     xlabel('Time (s)')
+%     grid on
+% 
+%     subplot(3,2,2);
+%     plot(Time,simout_MB_SlopAdj.*50,'LineWidth',2)
+%     title('MB DCDC Slope')
+%     ylabel('Voltage (V)')
+%     axis([a b 50 60]);
+%     xlabel('Time (s)')
+%     grid on
+% 
+%     subplot(3,2,4);
+%     plot(Time,simout_price,'LineWidth',2)
+%     title('Price');
+%     axis([a b 0 1]);
+%     grid on;
+%     xlabel('Time (s)')
 %%
 
 figure();
-subplot(2,1,1);
+subplot(3,1,1);
 plot(Time,simout_Pout_MB_DCDC1, ... 
         Time,simout_Pout_MB_DCDC2, ...
         Time,simout_Pout_SB_DCDC1, ... 
@@ -128,7 +111,8 @@ plot(Time,simout_Pout_MB_DCDC1, ...
         'Location','SouthEast');
     xlabel('Time (s)')
     axis([a b -500 300]);
-subplot(2,1,2);  
+    
+subplot(3,1,2);  
     plot(Time,simout_P_LD_autopilot, ...
         Time,simout_P_LD_ac,...
         Time,simout_P_LD_auxiliary, ...
@@ -144,59 +128,68 @@ subplot(2,1,2);
         'Standby', 'Location','SouthEast');
     xlabel('Time (s)')
     axis([a b 0 250]);
-    %%
-figure();
-subplot(2,2,3);
-plot(Time,simout_Pmax_MB(:,1), ...
-        Time,simout_Pout_MB(:,1),...
-        Time,simout_Pmin_MB(:,1), ...
-        'LineWidth',1)
-    title('MB DCDC Controll Output')
-    ylabel('Power (W)')
-    grid on
-    legend('Pmax', ...
-        'Pout',...
-        'Pmin', ... 
-        'Location','Best');
-    xlabel('Time (s)')
-    axis([a b 0 300]);
-
-subplot(2,2,2);  
-    plot(Time,simout_Pmax_LD, ...
-        Time,simout_Preq_LD_AC,...
-        Time,simout_Preq_LD_autopilot, 'LineWidth',1)
-    title('Load')
-    ylabel('Power (W)')
-    grid on
-    legend('Max Load limit',...
-        'Autopilot Load Input', ...
-        'A/C Load Input','Location','SouthEast');
-    xlabel('Time (s)')
-    axis([a b 0 260]);    
     
-% subplot(2,2,2);
-% plot(Time,simout_MB_var(:,1), ...
-%     Time,simout_MB_var(:,2), ...
-%     Time,simout_MB_var(:,3), ...
-%     Time,simout_MB_var(:,4), ...
+subplot(3,1,3);  
+plot(Time, simout_P_charger,...
+Time,simout_P_PV_input,...
+    Time, simout_P_PV_output,...
+    'LineWidth',1);
+grid on;
+    title('Charger and PV');
+    ylabel('Power (W)')
+    legend('Charger output',...
+        'PV input',...
+        'PV output','Location','SouthEast');
+    xlabel('Time (s)')
+    axis([a b 0 500]);
+    %%
+% figure();
+% subplot(2,2,3);
+% plot(Time,simout_Pmax_MB(:,1), ...
+%         Time,simout_Pout_MB(:,1),...
+%         Time,simout_Pmin_MB(:,1), ...
 %         'LineWidth',1)
-%     title('MB DCDC Controll Variables')
+%     title('MB DCDC Controll Output')
 %     ylabel('Power (W)')
 %     grid on
-%     legend('MB1_V0_adj', ...
-%         'MB2_V0_adj',...
-%         'MB1_slope_adj', ... 
-%         'MB2_slope_adj', ...
+%     legend('Pmax', ...
+%         'Pout',...
+%         'Pmin', ... 
 %         'Location','Best');
 %     xlabel('Time (s)')
-%     axis([a b -2 2]);
+%     axis([a b 0 300]);
+% 
+% subplot(2,2,2);  
+%     plot(Time,simout_Pmax_LD, ...
+%         Time,simout_Preq_LD_AC,...
+%         Time,simout_Preq_LD_autopilot, 'LineWidth',1)
+%     title('Load')
+%     ylabel('Power (W)')
+%     grid on
+%     legend('Max Load limit',...
+%         'Autopilot Load Input', ...
+%         'A/C Load Input','Location','SouthEast');
+%     xlabel('Time (s)')
+%     axis([a b 0 260]);    
+    
+
     %%
-subplot(2,2,1);
+figure();
+subplot(2,1,1);
 
     plot(Time,simout_SOC_MB1,'LineWidth',2)
     title('MB1 SOC')
     ylabel('SOC (%)')
-    axis([a b 0.8 1]);
+    axis([a b 0.98 1]);
+    xlabel('Time (s)')
+    grid on
+    
+    subplot(2,1,2);
+
+    plot(Time,simout_SOC_SB1,'LineWidth',2)
+    title('SB1 SOC')
+    ylabel('SOC (%)')
+    axis([a b 0.98 1]);
     xlabel('Time (s)')
     grid on
     
@@ -207,19 +200,19 @@ subplot(2,2,1);
 %     xlabel('Time (s)')
 %     axis([a b -30 10]);
 %%    
-subplot(2,2,4);
-area(Time,[simout_P_LD_standby, simout_P_LD_USB, simout_P_LD_auxiliary, simout_P_LD_autopilot,simout_P_LD_ac],...
-    'LineStyle', 'none')
-    title('Total Load')
-    ylabel('Power(W)')
-    grid on
-    xlabel('Time (s)')
-     legend('Auxiliary (ECU/sencors)',...
-         'Auxiliary (USB)', ...
-         'Auxiliary (lights)', ...
-         'Autopilot Load', ...
-        'A/C Load', 'Location','southoutside','Orientation','horizontal');
-    axis([a b 0 600]);
+% subplot(2,2,4);
+% area(Time,[simout_P_LD_standby, simout_P_LD_USB, simout_P_LD_auxiliary, simout_P_LD_autopilot,simout_P_LD_ac],...
+%     'LineStyle', 'none')
+%     title('Total Load')
+%     ylabel('Power(W)')
+%     grid on
+%     xlabel('Time (s)')
+%      legend('Auxiliary (ECU/sencors)',...
+%          'Auxiliary (USB)', ...
+%          'Auxiliary (lights)', ...
+%          'Autopilot Load', ...
+%         'A/C Load', 'Location','southoutside','Orientation','horizontal');
+%     axis([a b 0 600]);
 
 %% Driving cycle 
 % figure();
@@ -234,44 +227,44 @@ area(Time,[simout_P_LD_standby, simout_P_LD_USB, simout_P_LD_auxiliary, simout_P
 %      toc
 
 %%
-figure(); 
-subplot(2,3,1)
-    plot(Time,performance_avg,'LineWidth',1);
-    title('Average Load Performance');
-    ylabel('Performance')
-    grid on
-    xlabel('Time (s)')
-    axis([a b 0 1]);
-    
-    subplot(2,3,2)
-    plot(Time,simout_Level_autopilot,'LineWidth',1)
-    title('Autopilot');
-    ylabel('Level')
-    grid on
-    xlabel('Time (s)')
-    axis([a b 0 1]);
-    
-    subplot(2,3,4)
-    plot(Time,simout_Level_ac,'LineWidth',1)
-    title('A/C');
-    ylabel('Level')
-    grid on
-    xlabel('Time (s)')
-    axis([a b 0 1]);
-    subplot(2,3,5)
-    plot(Time,simout_Level_lights,'LineWidth',1)
-    title('Lights');
-    ylabel('Level')
-    grid on
-    xlabel('Time (s)')
-    axis([a b 0 1]);
-    subplot(2,3,6)
-    plot(Time,simout_Level_usb,'LineWidth',1)
-    title('USB');
-    ylabel('Level')
-    grid on
-    xlabel('Time (s)')
-    axis([a b 0 1]);
+% figure(); 
+% subplot(2,3,1)
+%     plot(Time,performance_avg,'LineWidth',1);
+%     title('Average Load Performance');
+%     ylabel('Performance')
+%     grid on
+%     xlabel('Time (s)')
+%     axis([a b 0 1]);
+%     
+%     subplot(2,3,2)
+%     plot(Time,simout_Level_autopilot,'LineWidth',1)
+%     title('Autopilot');
+%     ylabel('Level')
+%     grid on
+%     xlabel('Time (s)')
+%     axis([a b 0 1]);
+%     
+%     subplot(2,3,4)
+%     plot(Time,simout_Level_ac,'LineWidth',1)
+%     title('A/C');
+%     ylabel('Level')
+%     grid on
+%     xlabel('Time (s)')
+%     axis([a b 0 1]);
+%     subplot(2,3,5)
+%     plot(Time,simout_Level_lights,'LineWidth',1)
+%     title('Lights');
+%     ylabel('Level')
+%     grid on
+%     xlabel('Time (s)')
+%     axis([a b 0 1]);
+%     subplot(2,3,6)
+%     plot(Time,simout_Level_usb,'LineWidth',1)
+%     title('USB');
+%     ylabel('Level')
+%     grid on
+%     xlabel('Time (s)')
+%     axis([a b 0 1]);
 
 % figure();
 %     plot(Time,1-(1-simout_Level_ac.*0.25).^3,...
@@ -294,16 +287,18 @@ subplot(2,3,1)
 %     
 %%
 figure();
-plot(Time,simout_P_PV_input,...
-    Time, simout_P_PV_output,...
-    'LineWidth',1);
-grid on;
-    title('PV');
+%subplot(2,2,1);
+plot(Time,simout_Pmin_MB(:,1), ...
+        Time,simout_Pout_MB(:,1),...
+        'LineWidth',1)
+    title('MB DCDC Controll Output')
     ylabel('Power (W)')
-    legend('PV input',...
-        'PV output','Location','SouthEast');
+    grid on
+    legend('Pmin', ...
+        'Pout',... 
+        'Location','Best');
     xlabel('Time (s)')
-    axis([a b 0 500]);
+    axis([a b -300 300]);
 
 end;
     

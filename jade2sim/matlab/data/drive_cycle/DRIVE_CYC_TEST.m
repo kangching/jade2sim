@@ -11,20 +11,26 @@ disp(['Data loaded: CYC_CONSTANT - ',cyc_description])
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 cyc_kph=[0 0
-   55 60
-   100 30
-   200 80
-   298 80
-   300 0
+   30 0
+   100 45
+   120 45
+   121 0
+   160 0
+   200 45
+   220 45
+   221 0
+   240 0
+   300 45
    320 45
-   500 45
-   504 0
-   525 0];
+   321 0
+   340 0
+   400 45
+   420 45
+   421 0
+   425 0];
 cyc_key = ... 
-  [0 0
-  50 2
-  520 0
-  525 0]; % 0 for off, 1 for accessories, 2 for motor
+  [0 2
+  425 2]; % 0 for off, 1 for accessories, 2 for motor
 
 cyc_avg_time_samples=100;  % (s)
 cyc_grade=0;	%no grade associated with this cycle

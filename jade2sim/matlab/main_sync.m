@@ -41,15 +41,15 @@ end
 end
 % Main Batteries
 run('data/energy_storage/ESS_CP155_365_6S2P.m');
-ess1_init_soc = 0.7;%0.7;
-ess2_init_soc = 0.7;%0.7;
+ess1_init_soc = 1.0;%0.7;
+ess2_init_soc = 1.0;%0.7;
 ess1_soh = 1;
 ess2_soh = 1;
 
 % Secondary Batteries
 run('data/energy_storage/ESS_CE165_360_6S2P.m');
-ess3_init_soc = 0.7;%0.7;
-ess4_init_soc = 0.7;%0.7;
+ess3_init_soc = 1.0;%0.7;
+ess4_init_soc = 1.0;%0.7;
 ess3_soh = 1;
 ess4_soh = 1;
 
@@ -100,7 +100,7 @@ no_wheels = 3;
 wh_radius = 0.508/2;% wheel radius [m]
 wh_1st_rrc = 0.02; % wheel 1st coefficient of rolling resistance
 wh_bearing_frc = 0.0015; %wheel bearing viscous friction coefficient [Nm/(rad/s)]
-max_brk_torque = 300; %maximum brake torque, total [Nm]
+max_brk_torque = 800; %maximum brake torque, total [Nm]
 
 % Vehicle: BugE
 veh_mass = 190; % [kg]
@@ -657,7 +657,7 @@ mean(performance_avg)
 1-sum(performance_count)/length(performance_avg)
 
 %%
-figure;
-contour(mc_map_trq,mc_map_spd,mc_inpwr_map,'ShowText','on');
-xlabel('Torque(Nm)');
-ylabel('Motor rot. speed(rad/s)');
+% figure;
+% contour(mc_map_trq,mc_map_spd,mc_inpwr_map,'ShowText','on');
+% xlabel('Torque(Nm)');
+% ylabel('Motor rot. speed(rad/s)');
