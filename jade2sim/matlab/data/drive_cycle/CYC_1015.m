@@ -19,7 +19,7 @@ cyc_key = ...
 % OTHER DATA		
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%													
 cyc_avg_time_samples=100;  % (s)
-cyc_grade=-0.2;	%no grade associated with this cycle
+cyc_grade=0;	%no grade associated with this cycle
 
 if size(cyc_grade,1)<2
    % convert cyc_grade to a two column matrix, grade vs. dist

@@ -13,7 +13,7 @@ disp(['Loading...']);
 
 %sim
 JADE_on = 0;
-cyc_repeat = 1; %repeat drive/pedal cycle or stop at the end
+cyc_repeat = 0; %repeat drive/pedal cycle or stop at the end
 cyc_repeat_times = 1;
 sample_time = 0.01; %[s]
 stop_option = 0; %stop on: 0 SOC, 1 both, 2 Vbatt, 3 none
@@ -100,7 +100,7 @@ no_wheels = 3;
 wh_radius = 0.508/2;% wheel radius [m]
 wh_1st_rrc = 0.02; % wheel 1st coefficient of rolling resistance
 wh_bearing_frc = 0.0015; %wheel bearing viscous friction coefficient [Nm/(rad/s)]
-max_brk_torque = 800; %maximum brake torque, total [Nm]
+max_brk_torque = 300; %maximum brake torque, total [Nm]
 
 % Vehicle: BugE
 veh_mass = 190; % [kg]
@@ -125,7 +125,7 @@ fault_seq_step_delay = 0.1; %seconds between the steps of the fault sequences, n
 
 %% Load simulatin and set handles for simulation data
 
-sys = 'BugE_v0_40_MAS_loads';
+sys = 'BugE_v0_40_MAS_loads_reg';
 load_system(sys);
 
 if JADE_on == 1
