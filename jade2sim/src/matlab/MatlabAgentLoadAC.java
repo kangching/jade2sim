@@ -101,7 +101,7 @@ public class MatlabAgentLoadAC extends Agent
 					
 					price = parseAnswerDouble(cost)[0];
 					
-					level = 1-Math.pow(1-Math.max(Math.min(beta*(1+delta-price), 1), 0),1/alpha)*(1-levelMin);
+					level = 1-Math.pow(1-Math.max(Math.min(beta*(1.5+delta-price), 1), 0),1/alpha)*(1-levelMin);
 					
 					pMax = Math.min((Math.pow((1-bus_beta),2)/saturation((vBus-vBusMin)/(vBusMax-vBusMin), 1.0, Math.ulp(1.0)) - Math.pow((1-bus_beta),2) - 1)*busPmaxAbs,0);
 					

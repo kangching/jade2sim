@@ -83,6 +83,8 @@ public class MatlabAgentCom extends Agent
 		sendMessage("autopilot","","start-now",ACLMessage.INFORM);
 		sendMessage("lights","","start-now",ACLMessage.INFORM);
 		sendMessage("usb","","start-now",ACLMessage.INFORM);
+		sendMessage("pv","","start-now",ACLMessage.INFORM);
+		sendMessage("charger","","start-now",ACLMessage.INFORM);
 
 		// Run behavior
 		CommWithMatlab commWithMatlab = new CommWithMatlab();
@@ -228,6 +230,8 @@ public class MatlabAgentCom extends Agent
 				String outputAutopilot = "";
 				String outputLights = "";
 				String outputUSB = "";
+				String outputPV = "";
+				String outputCharger = "";
 				String outputObj = "";
 
 
@@ -263,6 +267,12 @@ public class MatlabAgentCom extends Agent
 						MessageTemplate  msgSB2= MessageTemplate.MatchSender(new AID ("sb2", AID.ISLOCALNAME));
 						ACLMessage outputReplySB2 = receive(msgSB2);
 						
+						MessageTemplate  msgPV= MessageTemplate.MatchSender(new AID ("pv", AID.ISLOCALNAME));
+						ACLMessage outputReplyPV = receive(msgPV);
+						
+						MessageTemplate  msgCharger= MessageTemplate.MatchSender(new AID ("charger", AID.ISLOCALNAME));
+						ACLMessage outputReplyCharger = receive(msgCharger);
+						
 						MessageTemplate  msgAC= MessageTemplate.MatchSender(new AID ("ac", AID.ISLOCALNAME));
 						ACLMessage outputReplyAC = receive(msgAC);
 						
@@ -279,7 +289,7 @@ public class MatlabAgentCom extends Agent
 						ACLMessage outputReplyObj = receive(msgObj);
 						/* Send output together*/
 						
-						if(outputReplyMB1!=null && outputReplyMB2!=null && outputReplySB1!=null && outputReplySB2!=null && outputReplyAC!=null && outputReplyAutopilot!=null && outputReplyLights!=null && outputReplyUSB!=null && outputReplyObj!=null)
+						if(outputReplyMB1!=null && outputReplyMB2!=null && outputReplySB1!=null && outputReplySB2!=null && outputReplyAC!=null && outputReplyAutopilot!=null && outputReplyLights!=null && outputReplyUSB!=null && outputReplyPV!=null && outputReplyCharger!=null && outputReplyObj!=null)
 						{
 							outputMB1 = outputReplyMB1.getContent();
 							outputMB2 = outputReplyMB2.getContent();
@@ -289,8 +299,12 @@ public class MatlabAgentCom extends Agent
 							outputAutopilot = outputReplyAutopilot.getContent();
 							outputLights = outputReplyLights.getContent();
 							outputUSB = outputReplyUSB.getContent();
+							outputPV = outputReplyPV.getContent();
+							outputCharger = outputReplyCharger.getContent();
 							outputObj = outputReplyObj.getContent();
-							String outputAnswer = callMatlab("send-output-all," + outputMB1 + "," + outputMB2 + "," + outputSB1 + ","  + outputSB2 + ","  + outputAC + ","  + outputAutopilot + ","  + outputLights + ","  + outputUSB + ","  + outputObj);
+							String outputAnswer = callMatlab("send-output-all," + outputMB1 + "," + outputMB2 + "," + outputSB1 + ","  + outputSB2 + ","  + outputAC + ","  + outputAutopilot + ","  + outputLights + ","  + outputUSB + ","  + outputPV + ","  + outputCharger + ","  + outputObj);
+							
+							System.out.println(getLocalName() + ": To Matlab: " + outputObj);
 							
 							outputMB1 = "";
 							outputMB2 = "";
@@ -300,6 +314,8 @@ public class MatlabAgentCom extends Agent
 							outputAutopilot = "";
 							outputLights = "";
 							outputUSB = "";
+							outputPV = "";
+							outputCharger = "";
 							outputObj = "";
 							out.flush();
 							

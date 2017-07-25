@@ -54,11 +54,11 @@ public class MatlabAgentObj extends Agent
 	{
 		double mb1, mb2, sb1, sb2, load, mb1Iout, mb2Iout, mb1SOC, mb2SOC, sb1SOC, sb2SOC;
 		double vBus, iMotor, simTime;
-		double mb1Vin, mb1SlopeAdj, mb1V0Adj, mb1Imin, mb1Imax;
-		double mb2Vin, mb2SlopeAdj, mb2V0Adj, mb2Imin, mb2Imax;
-		double sb1Vin, sb1SlopeAdj, sb1V0Adj, sb1Imin, sb1Imax;
-		double sb2Vin, sb2SlopeAdj, sb2V0Adj, sb2Imin, sb2Imax;
-		double acPreq, autopilotPreq, lightsPreq, usbPreq, price;
+		double mb1Vin, mb1SlopeAdj, mb1V0Adj, mb1Imin, mb1Imax, mb1Pmin, mb1Pmax;
+		double mb2Vin, mb2SlopeAdj, mb2V0Adj, mb2Imin, mb2Imax, mb2Pmin, mb2Pmax;
+		double sb1Vin, sb1SlopeAdj, sb1V0Adj, sb1Imin, sb1Imax, sb1Pmin, sb1Pmax;
+		double sb2Vin, sb2SlopeAdj, sb2V0Adj, sb2Imin, sb2Imax, sb2Pmin, sb2Pmax;
+		double acPreq, autopilotPreq, lightsPreq, usbPreq, price, pvAvail, chargerAvail;
 		// price coefficients: beta
 		double lightsBeta = 1.5;
 		double acBeta = 1.2;
@@ -68,8 +68,14 @@ public class MatlabAgentObj extends Agent
 		double acDelta = 0.0;
 		double usbDelta = 0.0;
 		double autopilotLevel = 1.0;
+		double pvLevel = 1.0;
+		double chargerLevel = 1.0;
 		double vBusMin = 17.0;
 		double vBusMax = 25.0;
+		double vBus0 = 24.0;
+		
+		double slope = 50.0;
+		double v0 = 24.0;
 		
 		double priceAdj;
 		double lightsLevel, acLevel, usbLevel, lightsAlpha, acAlpha, usbAlpha, lightsLevelMin, acLevelMin, usbLevelMin;
@@ -163,25 +169,25 @@ public class MatlabAgentObj extends Agent
 				iMotor = parseAnswerDouble(input)[2];
 				mb1Vin = parseAnswerDouble(input)[3];
 				mb1SlopeAdj = 1.0; //parseAnswerDouble(input)[6];
-				mb1V0Adj = 0.0; //parseAnswerDouble(input)[8];
+				mb1V0Adj = parseAnswerDouble(input)[9];
 				mb1Imin = parseAnswerDouble(input)[11];
 				mb1Imax = parseAnswerDouble(input)[13];
 				
 				mb2Vin = parseAnswerDouble(input)[4];
 				mb2SlopeAdj = 1.0; //parseAnswerDouble(input)[7];
-				mb2V0Adj = 0.0; //parseAnswerDouble(input)[9];
+				mb2V0Adj = parseAnswerDouble(input)[10];
 				mb2Imin = parseAnswerDouble(input)[12];
 				mb2Imax = parseAnswerDouble(input)[14];
 				
 				sb1Vin = parseAnswerDouble(input)[5];
 				sb1SlopeAdj = 1.0; //parseAnswerDouble(input)[14];
-				sb1V0Adj = 0.0; //parseAnswerDouble(input)[16];
+				sb1V0Adj = parseAnswerDouble(input)[17];
 				sb1Imin = parseAnswerDouble(input)[19];
 				sb1Imax = parseAnswerDouble(input)[21];
 				
 				sb2Vin = parseAnswerDouble(input)[6];
 				sb2SlopeAdj = 1.0; //parseAnswerDouble(input)[15];
-				sb2V0Adj = 0.0; //parseAnswerDouble(input)[17];
+				sb2V0Adj = parseAnswerDouble(input)[18];
 				sb2Imin = parseAnswerDouble(input)[20];
 				sb2Imax = parseAnswerDouble(input)[22];
 
@@ -200,6 +206,8 @@ public class MatlabAgentObj extends Agent
 				autopilotPreq = parseAnswerDouble(input)[34];
 				lightsPreq = parseAnswerDouble(input)[35];
 				usbPreq = parseAnswerDouble(input)[36];
+				
+				pvAvail = parseAnswerDouble(input)[37];
 				
 				simTime = parseAnswerDouble(input)[0];
 				
@@ -254,71 +262,47 @@ public class MatlabAgentObj extends Agent
 				double[] outputSB1=new double[]{vBus, iMotor, sb1Vin, sb1SlopeAdj, sb1V0Adj, sb1Imin, sb1Imax, sb1SOC, simTime};
 				double[] outputSB2=new double[]{vBus, iMotor, sb2Vin, sb2SlopeAdj, sb2V0Adj, sb2Imin, sb2Imax, sb2SOC, simTime};
 				
-				sendMessage("mb1",Arrays.toString(outputMB1).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
-						
-				MessageTemplate  msgMB1= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("mb1", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("limit"));
+				sendMessage("mb1",Arrays.toString(outputMB1).replace("[", "").replace("]", ""),"get-bid",ACLMessage.INFORM);
+				
+				MessageTemplate  msgMB1= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("mb1", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("bid"));
 				ACLMessage replyMB1 = receive(msgMB1);
-				if(replyMB1!=null){
-					if(mb1 > 0){
-						limitMB1 = 1;
-						pMB1 = Double.parseDouble(replyMB1.getContent());
-					}else{
-						limitMB1 = 0;
-					}
-				}
 
 				
-				sendMessage("mb2",Arrays.toString(outputMB2).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				sendMessage("mb2",Arrays.toString(outputMB2).replace("[", "").replace("]", ""),"get-bid",ACLMessage.INFORM);
 				
-				MessageTemplate  msgMB2= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("mb2", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("limit"));
+				MessageTemplate  msgMB2= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("mb2", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("bid"));
 				ACLMessage replyMB2 = receive(msgMB2);
-				if(replyMB2!=null){
-					if(mb2 > 0){
-						limitMB2 = 1;
-						pMB2 = Double.parseDouble(replyMB2.getContent());
-					}else{
-						limitMB2 = 0;
-					}
-				}
 
 				
-				sendMessage("sb1",Arrays.toString(outputSB1).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				sendMessage("sb1",Arrays.toString(outputSB1).replace("[", "").replace("]", ""),"get-bid",ACLMessage.INFORM);
 				
-				MessageTemplate  msgSB1= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("sb1", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("limit"));
+				MessageTemplate  msgSB1= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("sb1", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("bid"));
 				ACLMessage replySB1 = receive(msgSB1);
-				if(replySB1!=null){
-					if(sb1 > 0){
-						limitSB1 = 1;
-						pSB1 = Double.parseDouble(replySB1.getContent());
-					}else{
-						limitSB1 = 0;
-					}
-				}
 
-				sendMessage("sb2",Arrays.toString(outputSB2).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
 				
-				MessageTemplate  msgSB2= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("sb2", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("limit"));
+				sendMessage("sb2",Arrays.toString(outputSB2).replace("[", "").replace("]", ""),"get-bid",ACLMessage.INFORM);
+				
+				MessageTemplate  msgSB2= MessageTemplate.and(MessageTemplate.MatchSender(new AID ("sb2", AID.ISLOCALNAME)), MessageTemplate.MatchConversationId("bid"));
 				ACLMessage replySB2 = receive(msgSB2);
-				if(replySB2!=null){
-					if(sb2 > 0){
-						limitSB2 = 1;
-						pSB2 = Double.parseDouble(replySB2.getContent());
-					}else{
-						limitSB2 = 0;
-					}
-				}
 
 
-					powerBattAll = pMB1+pMB2+pSB1+pSB2;
-					powerReqAll= acPreq + lightsPreq + usbPreq;
-					powerSupplyAll = powerBattAll - autopilotPreq;
+//					powerBattAll = pPV+pSB1+pSB2;
+//					powerReqAll= acPreq + lightsPreq + usbPreq;
+//					powerSupplyAll = powerBattAll - autopilotPreq;
 
 //				System.out.println(getLocalName() + ": Price: " + powerRatio + "," + powerBattAll + "," + autopilotPreq);
 				
+// Bus Voltage Price adjustment
+					
+					// priceAdj = 1.0*Math.exp(-(vBus-vBusMin));
+					if(vBus <= vBus0){
+						priceAdj = Math.pow(-(vBus-vBus0)/Math.abs(vBus0-vBusMin), 5);
+					}else{
+						priceAdj = Math.pow(-(vBus-vBus0)/(Math.abs(vBus0-vBusMax)), 5);
+//						priceAdj = Math.pow(-(vBus-vBus0)/(2*Math.abs(vBus0-vBusMax)), 3);
+					}
 
-//				if(limitMB1+limitMB2 >= 1){
-					priceAdj = 1.0*Math.exp(-(vBus-vBusMin));
-//				}
+					System.out.println(getLocalName() + ": priceAdj: " + priceAdj);
 //					if(powerRatio <=0){
 //						usbLevel = 0.0;
 //						acLevel = 0.0;
@@ -344,7 +328,14 @@ public class MatlabAgentObj extends Agent
 				double[] outputLDlights=new double[]{lightsDelta, lightsPreq, lightsBeta, simTime};
 				double[] outputLDusb=new double[]{usbDelta, usbPreq, usbBeta, simTime};
 				
+				double[] outputPWPV=new double[]{vBus, pvAvail, pvLevel, simTime};
+				double[] outputPWCharger=new double[]{vBus, chargerAvail, chargerLevel, simTime};
+				
 				sendMessage("autopilot",Arrays.toString(outputLDautopilot).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				
+				sendMessage("pv",Arrays.toString(outputPWPV).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
+				
+				sendMessage("charger",Arrays.toString(outputPWCharger).replace("[", "").replace("]", ""),"get-output",ACLMessage.INFORM);
 				
 				sendMessage("ac",Arrays.toString(outputLDac).replace("[", "").replace("]", ""),"get-bid",ACLMessage.INFORM);
 				
@@ -362,7 +353,7 @@ public class MatlabAgentObj extends Agent
 				ACLMessage replyUSB = receive(msgUSB);
 				
 				
-				if(replyAC!=null && replyLight!=null && replyUSB!=null){
+				if(replyAC!=null && replyLight!=null && replyUSB!=null && replyMB1!=null && replyMB2!=null && replySB1!=null && replySB2!=null){
 					String acInput = replyAC.getContent();
 					acAlpha = parseAnswerDouble(acInput)[0];
 					acLevelMin = parseAnswerDouble(acInput)[1];
@@ -375,6 +366,23 @@ public class MatlabAgentObj extends Agent
 					usbAlpha = parseAnswerDouble(usbInput)[0];
 					usbLevelMin = parseAnswerDouble(usbInput)[1];
 					
+					String mb1Input = replyMB1.getContent();
+					mb1Pmin = parseAnswerDouble(mb1Input)[0];
+					mb1Pmax = parseAnswerDouble(mb1Input)[1];
+					
+					String mb2Input = replyMB2.getContent();
+					mb2Pmin = parseAnswerDouble(mb2Input)[0];
+					mb2Pmax = parseAnswerDouble(mb2Input)[1];
+					
+					String sb1Input = replySB1.getContent();
+					sb1Pmin = parseAnswerDouble(sb1Input)[0];
+					sb1Pmax = parseAnswerDouble(sb1Input)[1];
+					
+					String sb2Input = replySB2.getContent();
+					sb2Pmin = parseAnswerDouble(sb2Input)[0];
+					sb2Pmax = parseAnswerDouble(sb2Input)[1];
+					
+					
 					double[] performanceAC = pricePerformance(acBeta, acDelta);
 					double[] performanceLights = pricePerformance(lightsBeta, lightsDelta);
 					double[] performanceUSB = pricePerformance(usbBeta, usbDelta);
@@ -383,18 +391,33 @@ public class MatlabAgentObj extends Agent
 					double[] bidLights = pricePower(performanceLights, lightsAlpha, lightsLevelMin, lightsPreq);
 					double[] bidUSB = pricePower(performanceUSB, usbAlpha, usbLevelMin, usbPreq);
 					
+					double[] bidMB1 = pricePowerMB(slope, v0, mb1SlopeAdj, mb1V0Adj, mb1SOC, mb1Pmin, mb1Pmax);
+					double[] bidMB2 = pricePowerMB(slope, v0, mb2SlopeAdj, mb2V0Adj, mb2SOC, mb2Pmin, mb2Pmax);
+					double[] bidSB1 = pricePowerMB(slope, v0, sb1SlopeAdj, sb1V0Adj, sb1SOC, sb1Pmin, sb1Pmax);
+					double[] bidSB2 = pricePowerMB(slope, v0, sb2SlopeAdj, sb2V0Adj, sb2SOC, sb2Pmin, sb2Pmax);
+					
+					System.out.println(getLocalName() + ": MB1bid: " + Arrays.toString(bidMB1));
+					
 					double[] bidTotal = new double[bidAC.length];
 					for (int i=0; i<bidTotal.length; i++){
-						bidTotal[i] = bidAC[i]+bidLights[i]+bidUSB[i];
+						bidTotal[i] = bidAC[i]+bidLights[i]+bidUSB[i]+bidMB1[i]+bidMB2[i]+bidSB1[i]+bidSB2[i];
 					}
 					
-					price = findPrice(bidTotal, powerSupplyAll)+priceAdj;
-//					System.out.println(getLocalName() + ": Price: " +  Double.toString(price));
+					powerSupplyAll = pvAvail + chargerAvail - autopilotPreq;
+					
+					System.out.println(getLocalName() + ": powerSupplyAll: " +  Double.toString(powerSupplyAll));
+					
+					price = saturation(findPrice(bidTotal, powerSupplyAll)+priceAdj, 1.5, 0);
+					System.out.println(getLocalName() + ": Price: " +  Double.toString(price));
 					
 					
 					sendMessage("ac",Double.toString(price),"price",ACLMessage.INFORM);
 					sendMessage("lights",Double.toString(price),"price",ACLMessage.INFORM);
 					sendMessage("usb",Double.toString(price),"price",ACLMessage.INFORM);
+					sendMessage("mb1",Double.toString(price),"price",ACLMessage.INFORM);
+					sendMessage("mb2",Double.toString(price),"price",ACLMessage.INFORM);
+					sendMessage("sb1",Double.toString(price),"price",ACLMessage.INFORM);
+					sendMessage("sb2",Double.toString(price),"price",ACLMessage.INFORM);
 				}
 //				
 
@@ -463,11 +486,11 @@ public class MatlabAgentObj extends Agent
 	
 	private double[] pricePerformance(double beta, double delta)
 	{
-		double priceMax = 1.2;
+		double priceMax = 1.5;
 		double priceInterval = 0.05;
-		double[] performance = new double[(int) (priceMax*priceInterval)+1];
+		double[] performance = new double[(int)(priceMax/priceInterval)+1];
 		for (int i = 0; i < performance.length; i++){
-			performance[i] = Math.max(Math.min(beta*(1+delta-i*priceInterval), 1), 0);
+			performance[i] = Math.max(Math.min(beta*(1.5+delta-i*priceInterval), 1), 0);
 		}
 		return performance;
 	}
@@ -477,6 +500,18 @@ public class MatlabAgentObj extends Agent
 		double[] power = new double[performance.length];
 		for (int i = 0; i < power.length; i++){
 			power[i] = (1-Math.pow(1-performance[i],1/alpha)*(1-levelMin))*pReq;
+		}
+		return power;
+	}
+	
+	private double[] pricePowerMB(double slope, double v0, double slopeAdj, double v0Adj, double soc, double pMin, double pMax)
+	{
+		double priceMax = 1.5;
+		double priceInterval = 0.05;
+		double priceZero = 1-soc;
+		double[] power = new double[(int)(priceMax/priceInterval)+1];
+		for (int i = 0; i < power.length; i++){
+			power[i] = saturation(pMax-2*(i*priceInterval-priceZero)*(v0Adj+v0)*(slopeAdj*slope), pMax, pMin);
 		}
 		return power;
 	}

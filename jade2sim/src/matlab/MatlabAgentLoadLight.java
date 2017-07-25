@@ -101,7 +101,7 @@ public class MatlabAgentLoadLight extends Agent
 					
 					price = parseAnswerDouble(cost)[0];
 					
-					level = 1-Math.pow(1-Math.max(Math.min(beta*(1+delta-price), 1), 0),1/alpha)*(1-levelMin);
+					level = 1-Math.pow(1-Math.max(Math.min(beta*(1.5+delta-price), 1), 0),1/alpha)*(1-levelMin);
 					
 					pMax = pReq;
 					

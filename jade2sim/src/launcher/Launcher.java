@@ -77,6 +77,8 @@ public class Launcher
 		addAgent("autopilot", "matlab.MatlabAgentLoadAutopilot", null);
 		addAgent("lights", "matlab.MatlabAgentLoadLight", null);
 		addAgent("usb", "matlab.MatlabAgentLoadUSB", null);
+		addAgent("pv", "matlab.MatlabAgentPwPV", null);
+		addAgent("charger", "matlab.MatlabAgentPwCharger", null);
 	}
 
 

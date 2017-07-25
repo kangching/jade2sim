@@ -2,6 +2,13 @@ if show_results_plots==1
     
 %     tic
     disp(['Plotting results...']);
+    
+    if cyc_repeat == 1
+    stoptime = period*cyc_repeat_times;
+    else
+        stoptime = period;
+    end
+    
     Time = 0:stoptime;
     a = 0;
     b = stoptime;
@@ -41,7 +48,7 @@ end;
     plot(Time,simout_Vcap,'LineWidth',2)
     title('Bus Voltage')
     ylabel('Voltage (V)')
-    axis([a b 0 25]);
+    axis([a b 20 25]);
     grid on
 
     subplot(2,2,2);
@@ -84,13 +91,13 @@ end;
 %     axis([a b 50 60]);
 %     xlabel('Time (s)')
 %     grid on
-% 
-%     subplot(3,2,4);
-%     plot(Time,simout_price,'LineWidth',2)
-%     title('Price');
-%     axis([a b 0 1]);
-%     grid on;
-%     xlabel('Time (s)')
+
+    subplot(2,2,3);
+    plot(Time,simout_price,'LineWidth',2)
+    title('Price');
+    axis([a b 0 1.5]);
+    grid on;
+    xlabel('Time (s)')
 %%
 
 figure();
@@ -110,7 +117,7 @@ plot(Time,simout_Pout_MB_DCDC1, ...
     'Capacitor Power Output', ... 
         'Location','SouthEast');
     xlabel('Time (s)')
-    axis([a b -500 300]);
+%    axis([a b -500 300]);
     
 subplot(3,1,2);  
     plot(Time,simout_P_LD_autopilot, ...

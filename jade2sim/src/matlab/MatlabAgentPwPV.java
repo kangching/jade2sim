@@ -1,7 +1,5 @@
 package matlab;
 
-import java.util.Arrays;
-
 // import java.io.IOException;
 
 import jade.core.AID;
@@ -16,7 +14,7 @@ import jade.lang.acl.MessageTemplate;
  * that adapts and forwards its requests to Matlab.
  * @author kcchu
  */
-public class MatlabAgentLoadUSB extends Agent
+public class MatlabAgentPwPV extends Agent
 {
 
 	private static final long serialVersionUID = -4394243932169660776L;
@@ -56,61 +54,112 @@ public class MatlabAgentLoadUSB extends Agent
 
 		private static final long serialVersionUID = 8966535884137111965L;
 		// Local variables
-		private String device = "LD_USB";
-		private double pReq, pMax, pOut, simTime, price, level;
-		private double alpha = 1.0;
-		double beta;
-		private double levelMin = 0;
-		double delta;
-		private String output;
+		String device = "PW_PV";
+		double level, pReq, pMax, pOut, vBus, simTime;
+		double busPmaxPV = 100.0;
+		double vBusMax = 25.0;
+		double vBusMin = 17.0;
+		double bus_beta = 0.9;
+//		String answer = "";
+//		String request = "";
+		String input = "";
+		String output = "";
 
 		@Override
 		public void action() 
 		{	
-			MessageTemplate mt = MessageTemplate.MatchConversationId("get-bid");
-				ACLMessage inputMsg = myAgent.receive(mt);
-				if(inputMsg!=null)
-				{
-						
-					String input = inputMsg.getContent();
-	//				ACLMessage reply = inputMsg.createReply();
-	//				System.out.println(getLocalName() + ": Input: " + input);
-					
-					delta = parseAnswerDouble(input)[0];
-					pReq = parseAnswerDouble(input)[1];
-					beta = parseAnswerDouble(input)[2];
-					simTime = parseAnswerDouble(input)[3];
-					
-					double[] replyObj=new double[]{alpha, levelMin};
-					
-					sendMessage("obj",Arrays.toString(replyObj).replace("[", "").replace("]", ""),"bid",ACLMessage.INFORM);
-					MessageTemplate mtreply = MessageTemplate.MatchConversationId("price");
-					
-				ACLMessage reply = myAgent.receive(mtreply);
-				if(reply!=null)
-				{	
-					String cost = reply.getContent();
-	//				ACLMessage reply = inputMsg.createReply();
-	//				System.out.println(getLocalName() + ": Input: " + input);
-					
-					price = parseAnswerDouble(cost)[0];
-					
-					level = 1-Math.pow(1-Math.max(Math.min(beta*(1.5+delta-price), 1), 0),1/alpha)*(1-levelMin);
-					
-					pMax = pReq;
-					
-					pOut = pReq*level;
-					
-				
-					
 
+
+					
+			/* GET PARAMETERS */
+				
+//			System.out.println("*******************************");
+//			System.out.println("TESTING IF GETTING PARAMETERS WORKS");
+//			System.out.println("*******************************");
+//			
+//			// Get parameters of DCDC
+//			params = "MC_Imax,MB1_DCDC_slope,MB1_DCDC_V0";
+//			request = params;
+//			sendMessage(matlabAgent,request,GET_PARAMETERS_MULTIPLE,ACLMessage.INFORM);
+//			answer = blockingReceive().getContent();
+//			System.out.println(getLocalName() + ": Get MB1 parameters answer = " + answer);
+////			Object[][] ParamsData = parseAnswerString(answer);
+////			printDataArray(ParamsData);
+//			
+//			mcImax = parseAnswerDouble(answer)[0];
+//			slope = parseAnswerDouble(answer)[1];
+//			v0 = parseAnswerDouble(answer)[2];
+			
+//			mcImax = 12.0;
+//			slope = 50.0;
+//			v0 = 24.0;
+			
+//			
+//			/* CHANGE PARAMETERS */
+//			
+//			System.out.println("*******************************");
+//			System.out.println("TESTING IF CHANGING PARAMETERS WORKS");
+//			System.out.println("*******************************");
+//			
+//			// Change parameters for a bus (change name of bus 1)
+//			type = "MB_DCDC";
+//			nbFields = 2;
+//			fields = "slope,V0";
+//			values = (1+Integer.parseInt((String)dcdcsParamsData[0][0])) + "," + dcdcsParamsData[0][1];
+//			request = type + "," + nbFields + "," + fields + "," + values;
+//			sendMessage(matlabAgent,request,CHANGE_PARAMETERS_SINGLE,ACLMessage.INFORM);
+
+			
+			
+			/* Finish parameters changes */
+//			
+//			System.out.println("*******************************");
+//			System.out.println("TESTING TO RUN SIMULATION THROUGH ANOTHER AGENT");
+//			System.out.println("*******************************");
+//			
+//			sendMessage("simulink","","start-now",ACLMessage.INFORM);
+			
+			MessageTemplate mt = MessageTemplate.MatchConversationId("get-output");
+			ACLMessage inputMsg = receive(mt);
+			if(inputMsg!=null)
+			{
+					
+				input = inputMsg.getContent();
+//				ACLMessage reply = inputMsg.createReply();
+//				System.out.println(getLocalName() + ": Input: " + input);
+				
+				vBus = parseAnswerDouble(input)[0];
+				pReq = parseAnswerDouble(input)[1];
+				level = parseAnswerDouble(input)[2];
+				simTime = parseAnswerDouble(input)[3];
+				
+	//			System.out.println(getLocalName() + ": " + vBus);
+				
+				pMax = Math.max((-Math.pow((1-bus_beta),2)/(1-saturation((vBus-vBusMin)/(vBusMax-vBusMin), 1.0, Math.ulp(1.0))) + Math.pow((1-bus_beta),2) + 1)*busPmaxPV,0);
+				
+//				if(pReq >= -pMax)
+//				{
+//					sendMessage("obj",Double.toString(pReq+pMax),"power_request",ACLMessage.INFORM);
+//					MessageTemplate msg = MessageTemplate.MatchConversationId("power_request");
+//					ACLMessage reply = myAgent.receive(msg);
+//					if (msg != null){
+//						busPmaxAbs = Double.parseDouble(reply.getContent());
+//						pMax = Math.min((Math.pow((1-beta),2)/saturation((vBus-vBusMin)/(vBusMax-vBusMin), 1.0, Math.ulp(1.0)) - Math.pow((1-beta),2) - 1)*busPmaxAbs,0);
+//					}
+//					else{
+//						block();
+//					}
+//				}
+				
+				pOut = saturation(-pReq*level, 0.0, -pMax);
+				
 				output = device + ",Pmax,level,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(level) + "," + Double.toString(pOut) + "," + Double.toString(simTime);
 
-//					reply.setContent(output);
-//					myAgent.send(reply);
+
+//				reply.setContent(output);
+//				myAgent.send(reply);
 				sendMessage(matlabAgent,output,"send-output",ACLMessage.INFORM);
-				
-				}
+				System.out.println(getLocalName() + ": Output to Matlab: " + output);
 			}
 			
 			// End connection
