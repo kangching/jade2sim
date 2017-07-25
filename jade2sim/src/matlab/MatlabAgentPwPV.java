@@ -153,13 +153,13 @@ public class MatlabAgentPwPV extends Agent
 				
 				pOut = saturation(-pReq*level, 0.0, -pMax);
 				
-				output = device + ",Pmax,level,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(level) + "," + Double.toString(pOut) + "," + Double.toString(simTime);
+				output = device + ",Pmax,level,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(level) + "," + Double.toString(-pOut) + "," + Double.toString(simTime);
 
 
 //				reply.setContent(output);
 //				myAgent.send(reply);
 				sendMessage(matlabAgent,output,"send-output",ACLMessage.INFORM);
-				System.out.println(getLocalName() + ": Output to Matlab: " + output);
+//				System.out.println(getLocalName() + ": Output to Matlab: " + output);
 			}
 			
 			// End connection

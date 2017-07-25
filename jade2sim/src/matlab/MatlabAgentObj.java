@@ -208,6 +208,7 @@ public class MatlabAgentObj extends Agent
 				usbPreq = parseAnswerDouble(input)[36];
 				
 				pvAvail = parseAnswerDouble(input)[37];
+				chargerAvail = parseAnswerDouble(input)[38];
 				
 				simTime = parseAnswerDouble(input)[0];
 				
@@ -253,7 +254,28 @@ public class MatlabAgentObj extends Agent
 				sb1SlopeAdj = sb1SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
 				sb2SlopeAdj = sb2SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
 				
+				
+				
 //				System.out.println(getLocalName() + ": slopeAdj: " + mb1SlopeAdj);
+				
+				// Bus Voltage Price adjustment
+				
+//				 priceAdj = 1.0*Math.exp(-(vBus-vBusMin));
+				if(vBus <= vBus0){
+					priceAdj = Math.pow(-(vBus-vBus0)/Math.abs(vBus0-vBusMin), 5);
+				}else{
+					priceAdj = Math.pow(-(vBus-vBus0)/(Math.abs(vBus0-vBusMax)), 5);
+//					priceAdj = Math.pow(-(vBus-vBus0)/(2*Math.abs(vBus0-vBusMax)), 3);
+				}
+
+//				System.out.println(getLocalName() + ": priceAdj: " + priceAdj);
+				
+//				mb1V0Adj = mb1V0Adj + saturation(priceAdj,1,-1);
+//				mb2V0Adj = mb2V0Adj + saturation(priceAdj,1,-1);
+//				sb1V0Adj = sb1V0Adj + saturation(priceAdj,1,-1);
+//				sb2V0Adj = sb2V0Adj + saturation(priceAdj,1,-1);
+				
+				
 				
 				// Load
 				
@@ -302,7 +324,7 @@ public class MatlabAgentObj extends Agent
 //						priceAdj = Math.pow(-(vBus-vBus0)/(2*Math.abs(vBus0-vBusMax)), 3);
 					}
 
-					System.out.println(getLocalName() + ": priceAdj: " + priceAdj);
+//					System.out.println(getLocalName() + ": priceAdj: " + priceAdj);
 //					if(powerRatio <=0){
 //						usbLevel = 0.0;
 //						acLevel = 0.0;
@@ -391,24 +413,24 @@ public class MatlabAgentObj extends Agent
 					double[] bidLights = pricePower(performanceLights, lightsAlpha, lightsLevelMin, lightsPreq);
 					double[] bidUSB = pricePower(performanceUSB, usbAlpha, usbLevelMin, usbPreq);
 					
-					double[] bidMB1 = pricePowerMB(slope, v0, mb1SlopeAdj, mb1V0Adj, mb1SOC, mb1Pmin, mb1Pmax);
-					double[] bidMB2 = pricePowerMB(slope, v0, mb2SlopeAdj, mb2V0Adj, mb2SOC, mb2Pmin, mb2Pmax);
-					double[] bidSB1 = pricePowerMB(slope, v0, sb1SlopeAdj, sb1V0Adj, sb1SOC, sb1Pmin, sb1Pmax);
-					double[] bidSB2 = pricePowerMB(slope, v0, sb2SlopeAdj, sb2V0Adj, sb2SOC, sb2Pmin, sb2Pmax);
+					double[] bidMB1 = pricePowerMB(slope, v0, mb1SlopeAdj, mb1V0Adj, mb1SOC, mb1Pmin, mb1Pmax, vBus);
+					double[] bidMB2 = pricePowerMB(slope, v0, mb2SlopeAdj, mb2V0Adj, mb2SOC, mb2Pmin, mb2Pmax, vBus);
+					double[] bidSB1 = pricePowerMB(slope, v0, sb1SlopeAdj, sb1V0Adj, sb1SOC, sb1Pmin, sb1Pmax, vBus);
+					double[] bidSB2 = pricePowerMB(slope, v0, sb2SlopeAdj, sb2V0Adj, sb2SOC, sb2Pmin, sb2Pmax, vBus);
 					
-					System.out.println(getLocalName() + ": MB1bid: " + Arrays.toString(bidMB1));
+//					System.out.println(getLocalName() + ": MB1bid: " + Arrays.toString(bidMB1));
 					
 					double[] bidTotal = new double[bidAC.length];
 					for (int i=0; i<bidTotal.length; i++){
-						bidTotal[i] = bidAC[i]+bidLights[i]+bidUSB[i]+bidMB1[i]+bidMB2[i]+bidSB1[i]+bidSB2[i];
+						bidTotal[i] = bidAC[i]+bidMB1[i]+bidMB2[i]+bidSB1[i]+bidSB2[i];//+bidLights[i]+bidUSB[i];
 					}
 					
 					powerSupplyAll = pvAvail + chargerAvail - autopilotPreq;
 					
-					System.out.println(getLocalName() + ": powerSupplyAll: " +  Double.toString(powerSupplyAll));
+//					System.out.println(getLocalName() + ": powerSupplyAll: " +  Double.toString(powerSupplyAll));
 					
 					price = saturation(findPrice(bidTotal, powerSupplyAll)+priceAdj, 1.5, 0);
-					System.out.println(getLocalName() + ": Price: " +  Double.toString(price));
+//					System.out.println(getLocalName() + ": Price: " +  Double.toString(price));
 					
 					
 					sendMessage("ac",Double.toString(price),"price",ACLMessage.INFORM);
@@ -504,14 +526,15 @@ public class MatlabAgentObj extends Agent
 		return power;
 	}
 	
-	private double[] pricePowerMB(double slope, double v0, double slopeAdj, double v0Adj, double soc, double pMin, double pMax)
+	private double[] pricePowerMB(double slope, double v0, double slopeAdj, double v0Adj, double soc, double pMin, double pMax, double vBus)
 	{
 		double priceMax = 1.5;
 		double priceInterval = 0.05;
 		double priceZero = 1-soc;
 		double[] power = new double[(int)(priceMax/priceInterval)+1];
 		for (int i = 0; i < power.length; i++){
-			power[i] = saturation(pMax-2*(i*priceInterval-priceZero)*(v0Adj+v0)*(slopeAdj*slope), pMax, pMin);
+			power[i] = saturation((vBus-(v0Adj+v0))*(slopeAdj*slope), pMax, pMin);
+//			power[i] = saturation(pMax-2*(i*priceInterval-priceZero)*(v0Adj+v0)*(slopeAdj*slope), pMax, pMin);
 		}
 		return power;
 	}

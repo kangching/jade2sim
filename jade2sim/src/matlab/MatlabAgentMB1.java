@@ -127,7 +127,7 @@ public class MatlabAgentMB1 extends Agent
 					
 				String input = inputMsg.getContent();
 //				ACLMessage reply = inputMsg.createReply();
-				System.out.println(getLocalName() + ": Input: " + input);
+//				System.out.println(getLocalName() + ": Input: " + input);
 				
 				vBus = parseAnswerDouble(input)[0];
 				iMotor = parseAnswerDouble(input)[1];
@@ -163,7 +163,7 @@ public class MatlabAgentMB1 extends Agent
 				
 				double[] replyObj=new double[]{pMin, pMax};
 				
-				System.out.println(getLocalName() + ": Input: " + Arrays.toString(replyObj));
+//				System.out.println(getLocalName() + ": Input: " + Arrays.toString(replyObj));
 				
 				sendMessage("obj",Arrays.toString(replyObj).replace("[", "").replace("]", ""),"bid",ACLMessage.INFORM);
 				MessageTemplate mtreply = MessageTemplate.MatchConversationId("price");
@@ -177,7 +177,8 @@ public class MatlabAgentMB1 extends Agent
 					
 					price = parseAnswerDouble(cost)[0];
 					priceZero = 1 - soc;
-					pOut =saturation(pMax-2*(price-priceZero)*(v0Adj+v0)*(slopeAdj*slope), pMax, pMin); //<0 if consume, >0 if supply
+					pOut = saturation((vBus-(v0Adj+v0))*(slopeAdj*slope), pMax, pMin);
+//					pOut =saturation(pMax-2*(price-priceZero)*(v0Adj+v0)*(slopeAdj*slope), pMax, pMin); //<0 if consume, >0 if supply
 					
 					
 					output = device + ",Pmax,Pmin,Pout,simtime," + Double.toString(-pMin) + "," + Double.toString(-pMax) + "," + Double.toString(-pOut) + "," + simTime;

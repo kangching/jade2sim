@@ -304,7 +304,7 @@ public class MatlabAgentCom extends Agent
 							outputObj = outputReplyObj.getContent();
 							String outputAnswer = callMatlab("send-output-all," + outputMB1 + "," + outputMB2 + "," + outputSB1 + ","  + outputSB2 + ","  + outputAC + ","  + outputAutopilot + ","  + outputLights + ","  + outputUSB + ","  + outputPV + ","  + outputCharger + ","  + outputObj);
 							
-							System.out.println(getLocalName() + ": To Matlab: " + outputObj);
+//							System.out.println(getLocalName() + ": To Matlab: " + outputObj);
 							
 							outputMB1 = "";
 							outputMB2 = "";

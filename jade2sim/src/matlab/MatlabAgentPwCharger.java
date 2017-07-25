@@ -133,7 +133,7 @@ public class MatlabAgentPwCharger extends Agent
 				level = parseAnswerDouble(input)[2];
 				simTime = parseAnswerDouble(input)[3];
 				
-	//			System.out.println(getLocalName() + ": " + vBus);
+//				System.out.println(getLocalName() + ": pReq" + pReq);
 				
 				pMax = Math.max((-Math.pow((1-bus_beta),2)/(1-saturation((vBus-vBusMin)/(vBusMax-vBusMin), 1.0, Math.ulp(1.0))) + Math.pow((1-bus_beta),2) + 1)*busPmaxCharger,0);
 				
@@ -153,7 +153,7 @@ public class MatlabAgentPwCharger extends Agent
 				
 				pOut = saturation(-pReq*level, 0.0, -pMax);
 				
-				output = device + ",Pmax,level,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(level) + "," + Double.toString(pOut) + "," + Double.toString(simTime);
+				output = device + ",Pmax,level,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(level) + "," + Double.toString(-pOut) + "," + Double.toString(simTime);
 
 
 //				reply.setContent(output);

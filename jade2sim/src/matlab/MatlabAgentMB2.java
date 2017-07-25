@@ -175,7 +175,8 @@ public class MatlabAgentMB2 extends Agent
 					
 					price = parseAnswerDouble(cost)[0];
 					priceZero = 1 - soc;
-					pOut =saturation(pMax-2*(price-priceZero)*(v0Adj+v0)*(slopeAdj*slope), pMax, pMin);
+					pOut = saturation((vBus-(v0Adj+v0))*(slopeAdj*slope), pMax, pMin);
+//					pOut =saturation(pMax-2*(price-priceZero)*(v0Adj+v0)*(slopeAdj*slope), pMax, pMin);
 					
 					
 					output = device + ",Pmax,Pmin,Pout,simtime," + Double.toString(-pMin) + "," + Double.toString(-pMax) + "," + Double.toString(-pOut) + "," + simTime;

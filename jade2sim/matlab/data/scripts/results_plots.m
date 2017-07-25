@@ -48,7 +48,7 @@ end;
     plot(Time,simout_Vcap,'LineWidth',2)
     title('Bus Voltage')
     ylabel('Voltage (V)')
-    axis([a b 20 25]);
+    axis([a b 17 25]);
     grid on
 
     subplot(2,2,2);
