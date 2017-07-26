@@ -1,7 +1,5 @@
 package matlab;
 
-import java.util.Arrays;
-
 // import java.io.IOException;
 
 import jade.core.AID;
@@ -58,32 +56,25 @@ public class MatlabAgentSB2 extends Agent
 	{
 
 		private static final long serialVersionUID = 8966535884137111965L;
-		// Local variables
-		private String device = "SB2";
-		private double vBus, vIn, slopeAdj, v0Adj, iMin, iMax, pOut, simTime, soc, price, priceZero;
-		private double mcImax = 12.0;
-		private double slope = 50.0;
-		double v0 = 24.0;
-		double pMax, pMin, pOutInitial;
-		private String output;
+
 
 		@Override
 		public void action() 
 		{	
 
-//			// Local variables
-//			String device = "SB1";
+			// Local variables
+			String device = "SB2";
 //			String params;
-//			double vBus, iMotor, vIn, slopeAdj, v0Adj, iMin, iMax, pOut, simTime, soc;
-//			double mcImax = 12.0;
-//			double slope = 50.0;
-//			double v0 = 24.0;
-//			double pMax, pMin, pOutInitial;
+			double vBus, iMotor, vIn, slopeAdj, v0Adj, iMin, iMax, pOut, simTime, soc;
+			double mcImax = 12.0;
+			double slope = 50.0;
+			double v0 = 24.0;
+			double pMax, pMin, pOutInitial;
 //			String answer = "";
 //			String request = "";
-//			String input = "";
-//			String output = "";
-//					
+			String input = "";
+			String output = "";
+					
 			/* GET PARAMETERS */
 				
 //			System.out.println("*******************************");
@@ -132,17 +123,17 @@ public class MatlabAgentSB2 extends Agent
 //			
 //			sendMessage("simulink","","start-now",ACLMessage.INFORM);
 			
-			MessageTemplate mt = MessageTemplate.MatchConversationId("get-bid");
+			MessageTemplate mt = MessageTemplate.MatchConversationId("get-output");
 			ACLMessage inputMsg = receive(mt);
 			if(inputMsg!=null)
 			{
 					
-				String input = inputMsg.getContent();
+				input = inputMsg.getContent();
 //				ACLMessage reply = inputMsg.createReply();
 //				System.out.println(getLocalName() + ": Input: " + input);
 				
 				vBus = parseAnswerDouble(input)[0];
-//				iMotor = parseAnswerDouble(input)[1];
+				iMotor = parseAnswerDouble(input)[1];
 				vIn = parseAnswerDouble(input)[2];
 				slopeAdj = parseAnswerDouble(input)[3];
 				v0Adj = parseAnswerDouble(input)[4];
@@ -153,50 +144,29 @@ public class MatlabAgentSB2 extends Agent
 				
 	//			System.out.println(getLocalName() + ": " + vBus);
 				
-				pMin = -Math.min(iMax, mcImax)*Math.min(vIn, vBus);
-//				pOutInitial = (-(vBus-(v0Adj+v0)))*(slopeAdj*slope);
-				pMax = -Math.max(iMin, -mcImax)*Math.min(vIn, vBus);
+				pMax = Math.min(iMax, mcImax)*Math.min(vIn, vBus);
+				pOutInitial = (-(vBus-(v0Adj+v0)))*(slopeAdj*slope);
+				pMin = Math.max(iMin, -mcImax)*Math.min(vIn, vBus);
 				
-//				if(pOutInitial>=pMax)
-//					{
-//					pOut = pMax;
-//					}else if(pOutInitial<=pMin)
-//					{
-//						pOut = pMin;
-//					}else
-//					{
-//						pOut = pOutInitial;
-//					}
-//				output = device + ",Pmax,Pmin,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(pMin) + "," + Double.toString(pOut) + "," + simTime;
+				if(pOutInitial>=pMax)
+					{
+					pOut = pMax;
+					}else if(pOutInitial<=pMin)
+					{
+						pOut = pMin;
+					}else
+					{
+						pOut = pOutInitial;
+					}
+				output = device + ",Pmax,Pmin,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(pMin) + "," + Double.toString(pOut) + "," + simTime;
 
-				double[] replyObj=new double[]{pMin, pMax};
-				
-				sendMessage("obj",Arrays.toString(replyObj).replace("[", "").replace("]", ""),"bid",ACLMessage.INFORM);
-				MessageTemplate mtreply = MessageTemplate.MatchConversationId("price");
-				
-				ACLMessage reply = myAgent.receive(mtreply);
-				if(reply!=null)
-				{	
-					String cost = reply.getContent();
-	//				ACLMessage reply = inputMsg.createReply();
-	//				System.out.println(getLocalName() + ": Input: " + input);
-					
-					price = parseAnswerDouble(cost)[0];
-					priceZero = 1 - soc;
-					pOut = saturation((vBus-(v0Adj+v0))*(slopeAdj*slope), pMax, pMin);
-//					pOut =saturation(pMax-2*(price-priceZero)*(v0Adj+v0)*(slopeAdj*slope), pMax, pMin);
-					
-					
-					output = device + ",Pmax,Pmin,Pout,simtime," + Double.toString(-pMin) + "," + Double.toString(-pMax) + "," + Double.toString(-pOut) + "," + simTime;
-					
-					sendMessage(matlabAgent,output,"send-output",ACLMessage.INFORM);
-
-//				sendMessage(matlabAgent,output,"send-output",ACLMessage.INFORM);
-//				if(pOut >= pMax){
-//					sendMessage("obj",Double.toString(pMax),"limit",ACLMessage.INFORM);
-//				}else{
-//					sendMessage("obj",Double.toString(pOut),"good",ACLMessage.INFORM);
-//				}
+//				reply.setContent(output);
+//				myAgent.send(reply);
+				sendMessage(matlabAgent,output,"send-output",ACLMessage.INFORM);
+				if(pOut >= pMax){
+					sendMessage("obj",Double.toString(pMax),"limit",ACLMessage.INFORM);
+				}else{
+					sendMessage("obj",Double.toString(pOut),"good",ACLMessage.INFORM);
 				}
 
 
@@ -249,13 +219,6 @@ public class MatlabAgentSB2 extends Agent
 		    data[i] = Double.parseDouble(splitAnswer[i]);
 		}
 		return data;
-	}
-	
-	private double saturation(double input, double upperLimit, double lowerLimit)
-	{
-		double output;
-		output = Math.min(Math.max(input, lowerLimit), upperLimit);
-		return output;
 	}
 /*	
 	private Object[][] parseAnswerString(String answer)

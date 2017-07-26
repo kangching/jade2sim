@@ -41,15 +41,15 @@ end
 end
 % Main Batteries
 run('data/energy_storage/ESS_CP155_365_6S2P.m');
-ess1_init_soc = 1;%0.7;
-ess2_init_soc = 1;%0.7;
+ess1_init_soc = 1.0;%0.7;
+ess2_init_soc = 1.0;%0.7;
 ess1_soh = 1;
 ess2_soh = 1;
 
 % Secondary Batteries
 run('data/energy_storage/ESS_CE165_360_6S2P.m');
-ess3_init_soc = 1;%0.7;
-ess4_init_soc = 1;%0.7;
+ess3_init_soc = 1.0;%0.7;
+ess4_init_soc = 1.0;%0.7;
 ess3_soh = 1;
 ess4_soh = 1;
 
@@ -198,12 +198,6 @@ LD_Lights_handle = getSimulinkBlockHandle([sys,...
 LD_USB_handle = getSimulinkBlockHandle([sys,...
     '/Inputs Simulation Only/USB power/Switch']);
 
-PW_PV_handle = getSimulinkBlockHandle([sys,...
-    '/Inputs Simulation Only/PV power/Product']);
-
-PW_Charger_handle = getSimulinkBlockHandle([sys,...
-    '/Inputs Simulation Only/Charger power/Product1']);
-
 Jade_handle.LD_AC = getSimulinkBlockHandle([sys,...
     '/Energy Storage (New Grid)/AC/Jade_LD_AC']);
 Jade_handle.LD_Autopilot = getSimulinkBlockHandle([sys,...
@@ -212,10 +206,6 @@ Jade_handle.LD_Lights = getSimulinkBlockHandle([sys,...
     '/Auxiliaries (LV Grid)/Auxiliary load (lights)/Jade_LD_Lights']);
 Jade_handle.LD_USB = getSimulinkBlockHandle([sys,...
     '/Auxiliaries (LV Grid)/Auxiliary load (USB ports)/Jade_LD_USB']);
-Jade_handle.PW_PV = getSimulinkBlockHandle([sys,...
-    '/Energy Storage (New Grid)/PV_cells Pout/Jade_PW_PV']);
-Jade_handle.PW_Charger = getSimulinkBlockHandle([sys,...
-    '/Energy Storage (New Grid)/Charger/Jade_PW_Charger']);
 Jade_handle.Obj = getSimulinkBlockHandle([sys,...
     '/Outputs Simulation only/Jade_Obj']);
 
@@ -229,12 +219,10 @@ set_param(Jade_handle.LD_AC,'Value', '[0.0,0.0,0.0]');
 set_param(Jade_handle.LD_Autopilot,'Value', '[0.0,0.0,0.0]');
 set_param(Jade_handle.LD_Lights,'Value', '[0.0,0.0,0.0]');
 set_param(Jade_handle.LD_USB,'Value', '[0.0,0.0,0.0]');
-set_param(Jade_handle.PW_PV,'Value', '[0.0,0.0,0.0]');
-set_param(Jade_handle.PW_Charger,'Value', '[0.0,0.0,0.0]');
 set_param(Jade_handle.Obj,'Value', '[0.0,0.0,0.0]');
 
 
-agents = {'MB1','MB2','SB1','SB2','LD_AC','LD_Autopilot','LD_Lights','LD_USB','PW_PV','PW_Charger','Obj'};
+agents = {'MB1','MB2','SB1','SB2','LD_AC','LD_Autopilot','LD_Lights','LD_USB','Obj'};
 
 %% INITIALIZE CONNECTION
 
@@ -381,9 +369,6 @@ while(exist('t'))
                         rto_LD_Lights= get_param(LD_Lights_handle,'RuntimeObject');
                         rto_LD_USB= get_param(LD_USB_handle,'RuntimeObject');
                         
-                        rto_PW_PV= get_param(PW_PV_handle,'RuntimeObject');
-                        rto_PW_Charger= get_param(PW_Charger_handle,'RuntimeObject');
-                        
                         rto_simtime= get_param(sys,'SimulationTime');
                         
                         
@@ -425,8 +410,6 @@ while(exist('t'))
                         read.LD_Autopilot = rto_LD_Autopilot.OutputPort(1).Data;%34
                         read.LD_Lights = rto_LD_Lights.OutputPort(1).Data;%35
                         read.LD_USB = rto_LD_USB.OutputPort(1).Data;%36
-                        read.PW_PV = rto_PW_PV.OutputPort(1).Data;%37
-                        read.PW_Charger = rto_PW_Charger.OutputPort(1).Data;%38
                         
                         read_fields_str = strjoin(fieldnames(read),',');
                         read_values = struct2array(read);
@@ -496,7 +479,7 @@ while(exist('t'))
             toc
             tcp_send_function(t,'Done');
             set_param(sys,'SimulationCommand','stop');
-%            close_system(sys,0);
+            close_system(sys,0);
             
             clear reseive_output;
             clear msg;
