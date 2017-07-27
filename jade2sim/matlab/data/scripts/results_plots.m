@@ -13,7 +13,7 @@ if show_results_plots==1
     a = 0;
     b = stoptime;
 %     %% Battery Current Limiter
-%     figure();
+
 if use_drive_cycle == 0
     subplot(2,2,1);
     plot(cyc_acc(:,1),cyc_acc(:,2), ... 
@@ -48,7 +48,7 @@ end;
     plot(Time,simout_Vcap,'LineWidth',2)
     title('Bus Voltage')
     ylabel('Voltage (V)')
-    axis([a b 17 25]);
+    axis([a b 0 25]);
     grid on
 
     subplot(2,2,2);
@@ -67,22 +67,7 @@ end;
 %     xlabel('Time (s)')
 %     grid on
 % 
-%     subplot(3,2,3);
-%     plot(Time,bus_range_index,'LineWidth',2)
-%     title(['Bus Voltage = [',num2str(busVlower),',',num2str(busVupper),']']);
-%     
-%     ylabel('% of Time')
-%     axis([a b 0.5 1]);
-%     xlabel('Time (s)')
-%     grid on
-%     
-%     subplot(3,2,5);
-%     plot(Time,bus_std,'LineWidth',2)
-%     title('Bus Voltage Std');
-%     ylabel('std')
-%     axis([a b 0 1.5]);
-%     xlabel('Time (s)')
-%     grid on
+
 % 
 %     subplot(3,2,2);
 %     plot(Time,simout_MB_SlopAdj.*50,'LineWidth',2)
@@ -99,25 +84,43 @@ end;
     grid on;
     xlabel('Time (s)')
 %%
+figure();
+    subplot(2,1,1);
+    plot(Time,bus_range_index,'LineWidth',2)
+    title(['Bus Voltage = [',num2str(busVlower),',',num2str(busVupper),']']);
+    
+    ylabel('% of Time')
+    axis([a b 0.5 1]);
+    xlabel('Time (s)')
+    grid on
+    
+    subplot(2,1,2);
+    plot(Time,bus_std,'LineWidth',2)
+    title('Bus Voltage Std');
+    ylabel('std')
+    axis([a b 0 1.5]);
+    xlabel('Time (s)')
+    grid on
+%%
 
 figure();
 subplot(3,1,1);
-plot(Time,simout_Pout_MB_DCDC1, ... 
-        Time,simout_Pout_MB_DCDC2, ...
-        Time,simout_Pout_SB_DCDC1, ... 
+plot(Time,simout_Pout_MB_DCDC1+ ... 
+        simout_Pout_MB_DCDC2, ...
+        Time,simout_Pout_SB_DCDC1+ ... 
+        simout_Pout_SB_DCDC2, ... 
         Time,simout_Pout_AB,...
         Time,simout_Pout_cap,'LineWidth',1);
     title('24V Bus Powers')
     ylabel('Power (W)')
     grid on
-    legend('Motor Battery 1 DCDC Power Output', ... 
-        'Motor Battery 2 DCDC Power Output', ... 
-        'Secondary Battery 1 DCDC Power Output', ...
+    legend('Motor Batteries DCDC Power Output', ... 
+        'Secondary Batteries DCDC Power Output', ...
         'Auxiliary Battery Power Output',...
     'Capacitor Power Output', ... 
         'Location','SouthEast');
     xlabel('Time (s)')
-    axis([a b -500 300]);
+    axis([a b -1250 500]);
     
 subplot(3,1,2);  
     plot(Time,simout_P_LD_autopilot, ...
@@ -182,7 +185,7 @@ grid on;
 
     %%
 figure();
-subplot(2,1,1);
+subplot(2,2,2);
 
     plot(Time,simout_SOC_MB1,'LineWidth',2)
     title('MB1 SOC')
@@ -191,7 +194,7 @@ subplot(2,1,1);
     xlabel('Time (s)')
     grid on
     
-    subplot(2,1,2);
+    subplot(2,2,4);
 
     plot(Time,simout_SOC_SB1,'LineWidth',2)
     title('SB1 SOC')
@@ -293,13 +296,13 @@ subplot(2,1,1);
 %     axis([a b 0 1]);
 %     
 %%
-figure();
-%subplot(2,2,1);
+%figure();
+subplot(2,2,1);
 plot(Time,simout_Pmax_MB(:,1), ...
     Time,simout_Pmin_MB(:,1), ...
         Time,simout_Pout_MB(:,1),...
         'LineWidth',1)
-    title('MB DCDC Controll Output')
+    title('MB1 DCDC Controll Output')
     ylabel('Power (W)')
     grid on
     legend('Pmax','Pmin', ...
@@ -307,6 +310,20 @@ plot(Time,simout_Pmax_MB(:,1), ...
         'Location','Best');
     xlabel('Time (s)')
     axis([a b -300 300]);
+
+subplot(2,2,3);
+plot(Time,simout_Pmax_SB(:,1), ...
+Time,simout_Pmin_SB(:,1), ...
+    Time,simout_Pout_SB(:,1),...
+    'LineWidth',1)
+title('SB1 DCDC Controll Output')
+ylabel('Power (W)')
+grid on
+legend('Pmax','Pmin', ...
+    'Pout',... 
+    'Location','Best');
+xlabel('Time (s)')
+axis([a b -300 300]);
 
 end;
     

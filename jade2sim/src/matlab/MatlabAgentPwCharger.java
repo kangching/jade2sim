@@ -1,5 +1,7 @@
 package matlab;
 
+import java.util.Arrays;
+
 // import java.io.IOException;
 
 import jade.core.AID;
@@ -55,11 +57,12 @@ public class MatlabAgentPwCharger extends Agent
 		private static final long serialVersionUID = 8966535884137111965L;
 		// Local variables
 		String device = "PW_Charger";
-		double level, pReq, pMax, pOut, vBus, simTime;
+		double level, pReq, pMax, pOutInt, pOut, vBus, simTime, price;
 		double busPmaxCharger = 1000.0;
 		double vBusMax = 25.0;
 		double vBusMin = 17.0;
 		double bus_beta = 0.9;
+		double priceZero;
 //		String answer = "";
 //		String request = "";
 		String input = "";
@@ -68,57 +71,53 @@ public class MatlabAgentPwCharger extends Agent
 		@Override
 		public void action() 
 		{	
+			MessageTemplate mt = MessageTemplate.MatchConversationId("get-bid");
+			ACLMessage inputMsg = myAgent.receive(mt);
+			if(inputMsg!=null)
+			{
+				String input = inputMsg.getContent();
+				//				ACLMessage reply = inputMsg.createReply();
+				//				System.out.println(getLocalName() + ": Input: " + input);
+								vBus = parseAnswerDouble(input)[0];
+								pReq = parseAnswerDouble(input)[1];
+								price = parseAnswerDouble(input)[2];
+								simTime = parseAnswerDouble(input)[3];
+								priceZero = parseAnswerDouble(input)[4];
+								
+								pMax = Math.max((1 + Math.pow((1-bus_beta),2) - (Math.pow((1-bus_beta),2)/(1-saturation((vBus-vBusMin)/(vBusMax-vBusMin), 1.0, Math.ulp(1.0)))))*busPmaxCharger,0);		
+								pMax = Math.min(pMax, pReq);
+								
+								double[] replyObj=new double[]{pMax, priceZero};
+								
+//								System.out.println(getLocalName() + ": pMax: " + pMax);
 
+								sendMessage("obj",Arrays.toString(replyObj).replace("[", "").replace("]", ""),"bid",ACLMessage.INFORM);
+								MessageTemplate mtreply = MessageTemplate.MatchConversationId("price");
 
-					
-			/* GET PARAMETERS */
-				
-//			System.out.println("*******************************");
-//			System.out.println("TESTING IF GETTING PARAMETERS WORKS");
-//			System.out.println("*******************************");
-//			
-//			// Get parameters of DCDC
-//			params = "MC_Imax,MB1_DCDC_slope,MB1_DCDC_V0";
-//			request = params;
-//			sendMessage(matlabAgent,request,GET_PARAMETERS_MULTIPLE,ACLMessage.INFORM);
-//			answer = blockingReceive().getContent();
-//			System.out.println(getLocalName() + ": Get MB1 parameters answer = " + answer);
-////			Object[][] ParamsData = parseAnswerString(answer);
-////			printDataArray(ParamsData);
-//			
-//			mcImax = parseAnswerDouble(answer)[0];
-//			slope = parseAnswerDouble(answer)[1];
-//			v0 = parseAnswerDouble(answer)[2];
-			
-//			mcImax = 12.0;
-//			slope = 50.0;
-//			v0 = 24.0;
-			
-//			
-//			/* CHANGE PARAMETERS */
-//			
-//			System.out.println("*******************************");
-//			System.out.println("TESTING IF CHANGING PARAMETERS WORKS");
-//			System.out.println("*******************************");
-//			
-//			// Change parameters for a bus (change name of bus 1)
-//			type = "MB_DCDC";
-//			nbFields = 2;
-//			fields = "slope,V0";
-//			values = (1+Integer.parseInt((String)dcdcsParamsData[0][0])) + "," + dcdcsParamsData[0][1];
-//			request = type + "," + nbFields + "," + fields + "," + values;
-//			sendMessage(matlabAgent,request,CHANGE_PARAMETERS_SINGLE,ACLMessage.INFORM);
+							ACLMessage reply = myAgent.receive(mtreply);
+							if(reply!=null)
+							{	
+								String cost = reply.getContent();
+				//				ACLMessage reply = inputMsg.createReply();
+				//				System.out.println(getLocalName() + ": Input: " + input);
+								
+								price = parseAnswerDouble(cost)[0];
+								
+				//				level = 1-Math.pow(1-Math.max(Math.min(beta*(1.5+delta-price), 1), 0),1/alpha)*(1-levelMin);
+								
+														
+								pOutInt = Math.max(pReq*(price-priceZero),0);
+								pOut = saturation(pOutInt, pMax, 0);
+								level = 0.0;
+							
+								
+
+							output = device + ",Pmax,level,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(level) + "," + Double.toString(pOut) + "," + Double.toString(simTime);
 
 			
-			
-			/* Finish parameters changes */
-//			
-//			System.out.println("*******************************");
-//			System.out.println("TESTING TO RUN SIMULATION THROUGH ANOTHER AGENT");
-//			System.out.println("*******************************");
-//			
-//			sendMessage("simulink","","start-now",ACLMessage.INFORM);
-			
+/*
+ * block for no bidding
+ * 
 			MessageTemplate mt = MessageTemplate.MatchConversationId("get-output");
 			ACLMessage inputMsg = receive(mt);
 			if(inputMsg!=null)
@@ -154,13 +153,15 @@ public class MatlabAgentPwCharger extends Agent
 				pOut = saturation(-pReq*level, 0.0, -pMax);
 				
 				output = device + ",Pmax,level,Pout,simtime," + Double.toString(pMax) + "," + Double.toString(level) + "," + Double.toString(-pOut) + "," + Double.toString(simTime);
-
+*/
 
 //				reply.setContent(output);
 //				myAgent.send(reply);
 				sendMessage(matlabAgent,output,"send-output",ACLMessage.INFORM);
 //				System.out.println(getLocalName() + ": Output to Matlab: " + output);
+				}	
 			}
+			
 			
 			// End connection
 			//sendMessage(matlabAgent,"",END_CONNECTION,ACLMessage.INFORM);
