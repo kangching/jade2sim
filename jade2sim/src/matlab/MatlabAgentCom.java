@@ -236,7 +236,7 @@ public class MatlabAgentCom extends Agent
 
 
 				// Send the message and retrieve the answer
-				System.out.println(getLocalName() + ": Message sent to Matlab: " + simRequest);
+//				System.out.println(getLocalName() + ": Message sent to Matlab: " + simRequest);
 				String simAnswer = callMatlab(simRequest);
 				out.flush();
 				

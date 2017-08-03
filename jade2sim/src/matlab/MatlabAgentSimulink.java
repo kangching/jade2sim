@@ -134,8 +134,15 @@ public class MatlabAgentSimulink extends Agent
 				sendMessage("sb1","",END_CONNECTION,ACLMessage.INFORM);
 				sendMessage("sb2","",END_CONNECTION,ACLMessage.INFORM);
 				sendMessage("obj","",END_CONNECTION,ACLMessage.INFORM);
+				sendMessage("ac","",END_CONNECTION,ACLMessage.INFORM);
+				sendMessage("autopilot","",END_CONNECTION,ACLMessage.INFORM);
+				sendMessage("lights","",END_CONNECTION,ACLMessage.INFORM);
+				sendMessage("usb","",END_CONNECTION,ACLMessage.INFORM);
+				sendMessage("charger","",END_CONNECTION,ACLMessage.INFORM);
+				sendMessage("pv","",END_CONNECTION,ACLMessage.INFORM);
 			// Kill agent
 				myAgent.doDelete();
+				System.out.println(getLocalName() + ": Kill agent...");
 			}
 		} // End action
 

@@ -621,18 +621,19 @@ end
 %%
 busVlower = 19;
 busVupper = 25;
+intPeriod = 10;
 bus_range_index = NaN(size(simout_Vcap));
 bus_std = NaN(size(simout_Vcap));
 
 bus_range_int = find(simout_Vcap>=busVlower,1);
 bus_range = (simout_Vcap>=busVlower & simout_Vcap<=busVupper);
 
-for i = 1:length(bus_range)
-    bus_range_index(i,1) = sum(bus_range(1:i,1))/(i);
+for i = intPeriod+1:length(bus_range)
+    bus_range_index(i,1) = sum(bus_range(intPeriod+1:i,1))/(i-intPeriod);
 end
 
-for i = 60*5:length(bus_range)
-    bus_std(i,1) = std(simout_Vcap(i-60*5+1:i,1));
+for i = intPeriod+60*5:length(bus_range)
+    bus_std(i,1) = std(simout_Vcap(i-60*5+1+intPeriod:i,1));
 end
 
 
