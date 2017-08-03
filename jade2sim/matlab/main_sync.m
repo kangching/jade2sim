@@ -12,7 +12,7 @@ close all;
 disp(['Loading...']);
 
 %sim
-JADE_on = 1;
+JADE_on = 0;
 cyc_repeat = 0; %repeat drive/pedal cycle or stop at the end
 cyc_repeat_times = 1;
 sample_time = 0.01; %[s]
@@ -496,7 +496,7 @@ while(exist('t'))
             toc
             tcp_send_function(t,'Done');
             set_param(sys,'SimulationCommand','stop');
-%            close_system(sys,0);
+            close_system(sys,0);
             
             clear reseive_output;
             clear msg;

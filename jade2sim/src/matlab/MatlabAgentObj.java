@@ -87,7 +87,7 @@ public class MatlabAgentObj extends Agent
 		double pSB1 = 0.0;
 		double pSB2 = 0.0;
 		
-		double chargerPriceZero = 0;
+		double chargerPriceZero = -0.5;
 		
 
 		double IoutTotal, relativeSOC1, relativeSOC2;
@@ -251,10 +251,10 @@ public class MatlabAgentObj extends Agent
 				sb2SlopeAdj = sb2+1.0;
 				
 				//
-				mb1SlopeAdj = mb1SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
-				mb2SlopeAdj = mb2SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
-				sb1SlopeAdj = sb1SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
-				sb2SlopeAdj = sb2SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
+//				mb1SlopeAdj = mb1SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
+//				mb2SlopeAdj = mb2SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
+//				sb1SlopeAdj = sb1SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
+//				sb2SlopeAdj = sb2SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
 				
 				
 				
@@ -272,10 +272,20 @@ public class MatlabAgentObj extends Agent
 
 //				System.out.println(getLocalName() + ": priceAdj: " + priceAdj);
 				
-				mb1V0Adj = mb1V0Adj + saturation(priceAdj,1,-1);
-				mb2V0Adj = mb2V0Adj + saturation(priceAdj,1,-1);
-				sb1V0Adj = sb1V0Adj + saturation(priceAdj,1,-1);
-				sb2V0Adj = sb2V0Adj + saturation(priceAdj,1,-1);
+//				mb1V0Adj = mb1V0Adj + saturation(priceAdj,1,-1);
+//				mb2V0Adj = mb2V0Adj + saturation(priceAdj,1,-1);
+//				sb1V0Adj = sb1V0Adj + saturation(priceAdj,1,-1);
+//				sb2V0Adj = sb2V0Adj + saturation(priceAdj,1,-1);
+				
+//				mb1SlopeAdj = mb1SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
+//				mb2SlopeAdj = mb2SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
+//				sb1SlopeAdj = sb1SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
+//				sb2SlopeAdj = sb2SlopeAdj + saturation(10*Math.exp(-(vBus-vBusMin)),10,0)/50;
+				
+				mb1SlopeAdj = mb1SlopeAdj + saturation(10*Math.abs(priceAdj),10,0)/50;
+				mb2SlopeAdj = mb2SlopeAdj + saturation(10*Math.abs(priceAdj),10,0)/50;
+				sb1SlopeAdj = sb1SlopeAdj + saturation(10*Math.abs(priceAdj),10,0)/50;
+				sb2SlopeAdj = sb2SlopeAdj + saturation(10*Math.abs(priceAdj),10,0)/50;
 				
 				
 				
