@@ -12,7 +12,7 @@ close all;
 disp(['Loading...']);
 
 %sim
-JADE_on = 0;
+JADE_on = 1;
 cyc_repeat = 0; %repeat drive/pedal cycle or stop at the end
 cyc_repeat_times = 1;
 sample_time = 0.01; %[s]
@@ -65,10 +65,10 @@ run('data/dcdc/MC.m');
 params.MB_DCDC_slope = 50;
 params.MB_DCDC_V0 = 24;
 params.MB1_DCDC_slope = params.MB_DCDC_slope;%50; %abs value
-params.MB2_DCDC_slope = 50;%50; %abs value
+params.MB2_DCDC_slope = params.MB_DCDC_slope;%50; %abs value
 params.MB1_DCDC_V0 = 24;%24; %intercept
 params.MB2_DCDC_V0 = 24;%24; %intercept
-params.SB_DCDC_slope = params.MB_DCDC_slope;
+params.SB_DCDC_slope = 50;%params.MB_DCDC_slope;
 params.SB_DCDC_V0 = params.MB_DCDC_V0;
 params.MC_Imax = MC_Imax;
 
@@ -669,10 +669,15 @@ run('data/scripts/results_plots.m');
 %save('05092017_PV175_sim.mat');
 
 %%
+bus_volt_avg = mean(simout_Vcap(intPeriod:end))
 bus_range_time_final = bus_range_index(end,1)
 bus_std_avg = mean(bus_std,'omitnan')
-mean(performance_avg)
-1-sum(performance_count)/length(performance_avg)
+% mean(performance_avg)
+% 1-sum(performance_count)/length(performance_avg)
+
+SOC_SB_avg = (simout_SOC_MB1(end)+simout_SOC_MB2(end)+simout_SOC_SB1(end)+simout_SOC_SB2(end))/4
+
+[P_Charger P_Photovoltaic]
 
 %%
 % figure;

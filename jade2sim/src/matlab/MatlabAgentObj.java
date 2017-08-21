@@ -72,7 +72,7 @@ public class MatlabAgentObj extends Agent
 		double chargerLevel = 1.0;
 		double vBusMin = 17.0;
 		double vBusMax = 25.0;
-		double vBus0 = 23.0;
+		double vBus0 = 20.0;
 		
 		double slope = 50.0;
 		double v0 = 24.0;
