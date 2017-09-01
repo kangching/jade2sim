@@ -139,8 +139,10 @@ public class MatlabAgentSB2 extends Agent
 				v0Adj = parseAnswerDouble(input)[4];
 				iMin = parseAnswerDouble(input)[5];
 				iMax = parseAnswerDouble(input)[6];
-				soc = parseAnswerDouble(input)[7];
-				simTime = parseAnswerDouble(input)[8];
+				slope = parseAnswerDouble(input)[7];
+				v0 = parseAnswerDouble(input)[8];
+	//			soc = parseAnswerDouble(input)[7];
+				simTime = parseAnswerDouble(input)[9];
 				
 	//			System.out.println(getLocalName() + ": " + vBus);
 				

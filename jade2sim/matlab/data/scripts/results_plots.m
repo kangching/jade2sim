@@ -190,7 +190,7 @@ subplot(2,2,2);
     plot(Time,simout_SOC_MB1,'LineWidth',2)
     title('MB1 SOC')
     ylabel('SOC (%)')
-    axis([a b 0.98 1]);
+    axis([a b min(simout_SOC_MB1) 1]);
     xlabel('Time (s)')
     grid on
     
@@ -199,7 +199,7 @@ subplot(2,2,2);
     plot(Time,simout_SOC_SB1,'LineWidth',2)
     title('SB1 SOC')
     ylabel('SOC (%)')
-    axis([a b 0.98 1]);
+    axis([a b min(simout_SOC_SB1) 1]);
     xlabel('Time (s)')
     grid on
     
@@ -324,6 +324,59 @@ legend('Pmax','Pmin', ...
     'Location','Best');
 xlabel('Time (s)')
 axis([a b -300 300]);
+%%
+Index_load = simout_Index_load.data(:,:)';
+Index_load(isnan(Index_load))=1;
+figure();
+subplot(3,2,5)
+plot(Time,simout_Index_bus.data(:,:)'+simout_Index_supply.data+Index_load,'LineWidth',2);
+title('Overall Performance Index');
+xlabel('Time (s)');
+axis([a b -3 3]);
 
+subplot(3,2,2)
+plot(simout_Index_bus);
+title('Bus Performance Index','LineWidth',2);
+xlabel('Time (s)');
+axis([a b -1 1]);
+
+subplot(3,2,4)
+plot(simout_Index_supply);
+title('Supply Performance Index','LineWidth',2);
+xlabel('Time (s)');
+axis([a b -1 1]);
+
+subplot(3,2,6)
+plot(Time, Index_load);
+title('Load Performance Index','LineWidth',2);
+xlabel('Time (s)');
+axis([a b -1 1]);
+
+subplot(3,2,1);
+    plot(Time,simout_Vcap,'LineWidth',2)
+    title('Bus Voltage')
+    ylabel('Voltage (V)')
+    axis([a b 0 25]);
+    grid on    
+
+    subplot(3,2,3);  
+plot(Time,simout_Pout_MB_DCDC1+ ... 
+        simout_Pout_MB_DCDC2, ...
+        Time,simout_Pout_SB_DCDC1+ ... 
+        simout_Pout_SB_DCDC2, ... 
+Time, simout_P_charger,...
+Time,simout_P_PV_input,...
+    Time, simout_P_PV_output,...
+    'LineWidth',1);
+grid on;
+    title('Supply');
+    ylabel('Power (W)')
+    legend('Motor Batteries DCDC Power Output', ... 
+        'Secondary Batteries DCDC Power Output', ...
+        'Charger output',...
+        'PV input',...
+        'PV output','Location','SouthEast');
+    xlabel('Time (s)')
+    axis([a b -500 500]);
 end;
     

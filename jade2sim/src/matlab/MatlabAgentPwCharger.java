@@ -62,7 +62,8 @@ public class MatlabAgentPwCharger extends Agent
 		double vBusMax = 25.0;
 		double vBusMin = 17.0;
 		double bus_beta = 0.9;
-		double priceZero;
+		double p0Plevel;
+		double priceBase;
 //		String answer = "";
 //		String request = "";
 		String input = "";
@@ -82,12 +83,14 @@ public class MatlabAgentPwCharger extends Agent
 								pReq = parseAnswerDouble(input)[1];
 								price = parseAnswerDouble(input)[2];
 								simTime = parseAnswerDouble(input)[3];
-								priceZero = parseAnswerDouble(input)[4];
+								priceBase = parseAnswerDouble(input)[4];
+								p0Plevel = parseAnswerDouble(input)[5];
+								
 								
 								pMax = Math.max((1 + Math.pow((1-bus_beta),2) - (Math.pow((1-bus_beta),2)/(1-saturation((vBus-vBusMin)/(vBusMax-vBusMin), 1.0, Math.ulp(1.0)))))*busPmaxCharger,0);		
 								pMax = Math.min(pMax, pReq);
 								
-								double[] replyObj=new double[]{pMax, priceZero};
+								double[] replyObj=new double[]{pMax, priceBase};
 								
 //								System.out.println(getLocalName() + ": pMax: " + pMax);
 
@@ -106,7 +109,7 @@ public class MatlabAgentPwCharger extends Agent
 				//				level = 1-Math.pow(1-Math.max(Math.min(beta*(1.5+delta-price), 1), 0),1/alpha)*(1-levelMin);
 								
 														
-								pOutInt = Math.max(pReq*(price-priceZero),0);
+								pOutInt = Math.max(pReq-pReq*(priceBase-price)*(1-p0Plevel)/priceBase,0);
 								pOut = saturation(pOutInt, pMax, 0);
 								level = 0.0;
 							

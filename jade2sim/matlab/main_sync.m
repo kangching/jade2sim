@@ -12,9 +12,9 @@ close all;
 disp(['Loading...']);
 
 %sim
-JADE_on = 1;
-cyc_repeat = 0; %repeat drive/pedal cycle or stop at the end
-cyc_repeat_times = 1;
+JADE_on = 0;
+cyc_repeat = 1; %repeat drive/pedal cycle or stop at the end
+cyc_repeat_times = 5;
 sample_time = 0.01; %[s]
 stop_option = 0; %stop on: 0 SOC, 1 both, 2 Vbatt, 3 none
 %IO
@@ -25,6 +25,9 @@ lockSOCs = 0; %locks battery SOCs to initial value for testing purposes
 write_csv = 0;
 show_energy_plots = 1;
 show_results_plots = 1;
+%performance sample time
+perform_sample_time = 3*60; %sec
+
 
 %% vehicle/cycle setup
 
@@ -125,7 +128,7 @@ fault_seq_step_delay = 0.1; %seconds between the steps of the fault sequences, n
 
 %% Load simulatin and set handles for simulation data
 
-sys = 'BugE_v0_40_MAS_loads_reg';
+sys = 'BugE_v0_40_MAS_loads_opt';
 load_system(sys);
 
 if JADE_on == 1
@@ -427,6 +430,21 @@ while(exist('t'))
                         read.LD_USB = rto_LD_USB.OutputPort(1).Data;%36
                         read.PW_PV = rto_PW_PV.OutputPort(1).Data;%37
                         read.PW_Charger = rto_PW_Charger.OutputPort(1).Data;%38
+                        
+                        read.MB_V0 = params.MB_DCDC_V0;%39
+                        read.SB_V0 = params.SB_DCDC_V0;%40
+                        read.MB_slope = params.MB_DCDC_slope;%41
+                        read.SB_slope = params.SB_DCDC_slope;%42
+                        
+                        read.SlopeAdjCoef = 5;%params.SlopeAdjCoef;%43
+                        read.PriceAdjV0 = 22;%params.PriceAdjV0;%44
+                        read.PriceAdjCoef = 5;%params.PriceAdjCoef;%45
+                        read.Pricee_base = 0.5;%params.Price_base;%46
+                        read.Charger_price0_Plevel = 0.5;%params.Charger_price0_Plevel;%47
+                        
+                        
+                        
+                        
                         
                         read_fields_str = strjoin(fieldnames(read),',');
                         read_values = struct2array(read);
