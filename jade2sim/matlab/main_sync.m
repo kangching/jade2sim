@@ -66,15 +66,16 @@ AB_diode_dV = 0.9; %[V]
 %   MagCap
 run('data/dcdc/MC.m');
 params.MB_DCDC_slope = 50;
-params.MB_DCDC_V0 = 22;
+params.MB_DCDC_V0 = 23;
 params.MB1_DCDC_slope = params.MB_DCDC_slope;%50; %abs value
 params.MB2_DCDC_slope = params.MB_DCDC_slope;%50; %abs value
-params.MB1_DCDC_V0 = 22;%24; %intercept
-params.MB2_DCDC_V0 = 22;%24; %intercept
+params.MB1_DCDC_V0 = 23;%24; %intercept
+params.MB2_DCDC_V0 = 23;%24; %intercept
 params.SB_DCDC_slope = 50;%params.MB_DCDC_slope;
 params.SB_DCDC_V0 = params.MB_DCDC_V0;
 params.MC_Imax = MC_Imax;
 params.MB_DCDC_slope_adjcoef = 5;
+
 params.SB_DCDC_slope_adjcoef = params.MB_DCDC_slope_adjcoef;
 params.price_adjV0 = 22;
 params.price_adjcoef = 5;
@@ -714,70 +715,66 @@ SOC_SB_avg = (simout_SOC_MB1(end)+simout_SOC_MB2(end)+simout_SOC_SB1(end)+simout
 [P_Charger P_Photovoltaic]
 
 %%
-GP_data = table;
-
-GP_data.LD_AC = input_aggr(simout_Preq_LD_AC,perform_sample_time);
-GP_data.LD_autopilot = input_aggr(simout_Preq_LD_autopilot,perform_sample_time);
-GP_data.LD_lights = input_aggr(simout_Preq_LD_lights,perform_sample_time);
-GP_data.LD_usb = input_aggr(simout_Preq_LD_USB,perform_sample_time);
-GP_data.MBdcdc = input_aggr(simout_Pout_MB_DCDC1+simout_Pout_MB_DCDC2,perform_sample_time);
-GP_data.pv = input_aggr(simout_P_PV_input,perform_sample_time);
-GP_data.charger = input_aggr(simout_P_charger_input,perform_sample_time);
-GP_data.MBsoc = input_int((simout_SOC_MB1+simout_SOC_MB2)/2,perform_sample_time);
-
-Index_load = simout_Index_load.data(:,:)';
-Index_load(isnan(Index_load))=1;
-Index_all = simout_Index_bus.data(:,:)'+simout_Index_supply.data+Index_load;
-
-GP_data.MB_V0 = input_int(simout_param_MB_V0,perform_sample_time);
-GP_data.SB_V0 = input_int(simout_param_SB_V0,perform_sample_time);
-GP_data.MB_slope = input_int(simout_param_MB_slope,perform_sample_time);
-GP_data.SB_slope = input_int(simout_param_SB_slope,perform_sample_time);
-GP_data.MB_slope_adjcoef = input_int(simout_param_MB_slope_adjcoef,perform_sample_time);
-GP_data.SB_slope_adjcoef = input_int(simout_param_SB_slope_adjcoef,perform_sample_time);
-GP_data.price_adjV0 = input_int(simout_param_price_adjV0,perform_sample_time);
-GP_data.price_adjcoef = input_int(simout_param_price_adjcoef,perform_sample_time);
-GP_data.perform = input_int(Index_all,perform_sample_time);
-GP_data.perform_output = [GP_data.perform(2:end);0];%[GP_data.perform(2:end)-GP_data.perform(1:end-1);0];
-
-update_interval_avg = mean(reshape(ts_update_interval_1s.data(1:floor(length(ts_update_interval_1s.data)/perform_sample_time)*perform_sample_time),perform_sample_time,[]),1);
-valid = find(update_interval_avg<=10);
-
-GP_data_valid = GP_data(valid,:);
-GP_data_valid = GP_data_valid(2:end,:);
-
-
-%%
-GP_data_test = GP_data_valid(1:end-2,:);
-% save('09062017_jade_gpdata_test.mat');
-%load('09062017_jade_gpdata_training98.mat','GP_data_training')
-%GP_data_training.perform_output = [GP_data_training.perform(2:end);0];
-%GP_model = fitrgp(GP_data_training,'perform_output','KernelFunction','squaredexponential','Standardize',1);%,'Optimizer','fmincon');
-
-
-%%
-load('09062017_jade_gpdata_training98.mat','GP_model')
-[ypred,~,yci] = predict(GP_model,GP_data_test,'Alpha',0.01);
-figure();
-plot(GP_data_test.perform_output,'r.');
-hold on
-plot(ypred);
-plot(yci(:,1),'k:');
-plot(yci(:,2),'k:');
-legend('True response','GPR predictions',...
-'Lower prediction limit','Upper prediction limit',...
-'Location','Best');
-xlabel('x');
-ylabel('y');
-%%
-figure();
-plot(GP_data_training.LD_AC, GP_data_training.LD_autopilot, ...
-    GP_data_training.LD_lights, GP_data_training.LD_usb, ...
-    GP_data_training.MBdcdc, GP_data_training.pv, ...
-    GP_data_training.charger, GP_data_training.MBsoc, ...
-    '.');
-
-% figure;
-% contour(mc_map_trq,mc_map_spd,mc_inpwr_map,'ShowText','on');
-% xlabel('Torque(Nm)');
-% ylabel('Motor rot. speed(rad/s)');
+% GP_data = table;
+% 
+% GP_data.LD_AC = input_aggr(simout_Preq_LD_AC,perform_sample_time);
+% GP_data.LD_autopilot = input_aggr(simout_Preq_LD_autopilot,perform_sample_time);
+% GP_data.LD_lights = input_aggr(simout_Preq_LD_lights,perform_sample_time);
+% GP_data.LD_usb = input_aggr(simout_Preq_LD_USB,perform_sample_time);
+% GP_data.MBdcdc = input_aggr(simout_Pout_MB_DCDC1+simout_Pout_MB_DCDC2,perform_sample_time);
+% GP_data.pv = input_aggr(simout_P_PV_input,perform_sample_time);
+% GP_data.charger = input_aggr(simout_P_charger_input,perform_sample_time);
+% GP_data.MBsoc = input_int((simout_SOC_MB1+simout_SOC_MB2)/2,perform_sample_time);
+% 
+% Index_load = simout_Index_load.data(:,:)';
+% Index_load(isnan(Index_load))=1;
+% Index_all = simout_Index_bus.data(:,:)'+simout_Index_supply.data+Index_load;
+% 
+% GP_data.MB_V0 = input_int(simout_param_MB_V0,perform_sample_time);
+% GP_data.SB_V0 = input_int(simout_param_SB_V0,perform_sample_time);
+% GP_data.MB_slope = input_int(simout_param_MB_slope,perform_sample_time);
+% GP_data.SB_slope = input_int(simout_param_SB_slope,perform_sample_time);
+% GP_data.MB_slope_adjcoef = input_int(simout_param_MB_slope_adjcoef,perform_sample_time);
+% GP_data.SB_slope_adjcoef = input_int(simout_param_SB_slope_adjcoef,perform_sample_time);
+% GP_data.price_adjV0 = input_int(simout_param_price_adjV0,perform_sample_time);
+% GP_data.price_adjcoef = input_int(simout_param_price_adjcoef,perform_sample_time);
+% GP_data.perform = input_int(Index_all,perform_sample_time);
+% GP_data.perform_output = [GP_data.perform(2:end);0];%[GP_data.perform(2:end)-GP_data.perform(1:end-1);0];
+% 
+% update_interval_avg = mean(reshape(ts_update_interval_1s.data(1:floor(length(ts_update_interval_1s.data)/perform_sample_time)*perform_sample_time),perform_sample_time,[]),1);
+% valid = find(update_interval_avg<=10);
+% 
+% GP_data_valid = GP_data(valid,:);
+% GP_data_valid = GP_data_valid(2:end,:);
+% 
+% 
+% %%
+% GP_data_test = GP_data_valid(1:end-2,:);
+% % save('09062017_jade_gpdata_test.mat');
+% %load('09062017_jade_gpdata_training98.mat','GP_data_training')
+% %GP_data_training.perform_output = [GP_data_training.perform(2:end);0];
+% %GP_model = fitrgp(GP_data_training,'perform_output','KernelFunction','squaredexponential','Standardize',1);%,'Optimizer','fmincon');
+% 
+% 
+% %%
+% load('09062017_jade_gpdata_training98.mat','GP_model')
+% [ypred,~,yci] = predict(GP_model,GP_data_test,'Alpha',0.01);
+% figure();
+% plot(GP_data_test.perform_output,'r.');
+% hold on
+% plot(ypred);
+% plot(yci(:,1),'k:');
+% plot(yci(:,2),'k:');
+% legend('True response','GPR predictions',...
+% 'Lower prediction limit','Upper prediction limit',...
+% 'Location','Best');
+% xlabel('x');
+% ylabel('y');
+% 
+% figure();
+% plot(GP_data_training.LD_AC, GP_data_training.LD_autopilot, ...
+%     GP_data_training.LD_lights, GP_data_training.LD_usb, ...
+%     GP_data_training.MBdcdc, GP_data_training.pv, ...
+%     GP_data_training.charger, GP_data_training.MBsoc, ...
+%     '.');
+% 
